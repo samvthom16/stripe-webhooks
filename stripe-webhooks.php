@@ -14,6 +14,7 @@
 
 	$inc_files = array(
 		'class-stripe-webhooks-base.php',
+		'class-stripe-webhooks-stripe-api.php',
 		'class-stripe-webhooks-mailchimp-api.php',
 		'class-stripe-webhooks-admin.php',
 		'class-stripe-webhooks.php'

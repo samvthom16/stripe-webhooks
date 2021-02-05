@@ -25,10 +25,29 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				$response = $mailchimpAPI->syncProducts();
 				break;
 
+			/*
 			case 'order':
 				$amount = 20;
 				$email_address = 'sam@sputznik.com';
 				$response = $mailchimpAPI->createOrderForAmount( $email_address, $amount );
+				break;
+			*/
+
+			case 'deleteOrder':
+				$order_id = 'order1612454175';
+				$store_id = $mailchimpAPI->getStoreID();
+				$apiURL = "ecommerce/stores/$store_id/orders/$order_id";
+				echo $apiURL;
+				$response = $mailchimpAPI->processRequest( $apiURL, array(), true );
+				break;
+
+			case 'orders':
+				$store_id = $mailchimpAPI->getStoreID();
+				$response = $mailchimpAPI->cachedProcessRequest( 'ecommerce/stores/' . $store_id . '/orders' );
+				break;
+
+			case 'resetOrders':
+				//order1612519921
 				break;
 
 			case 'stores':
@@ -47,44 +66,44 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 	function process(){
 		require_once('stripe-php/init.php');
 
-		$payload = @file_get_contents('php://input');
-		$event = null;
+		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 
-		try {
-				$event = \Stripe\Event::constructFrom(
-						json_decode($payload, true)
-				);
-		} catch(\UnexpectedValueException $e) {
-				// Invalid payload
-				http_response_code(400);
-				exit();
-		}
+		$event = $stripe->getEventFromPayload();
+
+		//$customer = $stripe->getCustomer( 'cus_Gq8h2kaM2xherm' );
 
 		//echo "<pre>";
-		//print_r( $event );
+		//print_r(  );
 		//echo "</pre>";
 
 		/* Handle the event */
-		switch ($event->type) {
-				case 'payment_intent.succeeded':
-						$paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
+		switch ( $event->type ) {
+			case 'payment_intent.succeeded':
+				$paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
 
-						echo $paymentIntent->id;
-						echo $paymentIntent->amount;
-						echo $paymentIntent->customer;
-						echo $paymentIntent->currency;
-						
-						// Then define and call a method to handle the successful payment intent.
-						// handlePaymentIntentSucceeded($paymentIntent);
-						break;
-				case 'payment_method.attached':
-						$paymentMethod = $event->data->object; // contains a \Stripe\PaymentMethod
-						// Then define and call a method to handle the successful attachment of a PaymentMethod.
-						// handlePaymentMethodAttached($paymentMethod);
-						break;
-				// ... handle other event types
-				default:
-						echo 'Received unknown event type ' . $event->type;
+				if( isset( $paymentIntent->customer ) && !empty( $paymentIntent->customer ) ){
+					$email_address = $stripe->getEmailFromCustomerID( $paymentIntent->customer );
+					$currency_code = strtoupper( $paymentIntent->currency );
+					$amount = $paymentIntent/100;
+
+					$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
+					$response = $mailchimpAPI->createOrderForAmount( $email_address, $amount, $currency_code );
+
+					if( isset( $response->id ) ){
+						echo "Order has been succesfully created with ID: " . $response->id;
+					}
+				}
+
+
+
+
+
+				// Then define and call a method to handle the successful payment intent.
+				// handlePaymentIntentSucceeded($paymentIntent);
+				break;
+
+			default:
+				echo 'Received unknown event type ' . $event->type;
 		}
 
 		http_response_code(200);

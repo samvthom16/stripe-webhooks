@@ -184,17 +184,19 @@
 			return $this->processRequest( 'ecommerce/stores/' . $store_id . '/products', $product );
 		}
 
-		function processRequest( $partUrl, $postParams = array() ){
+		function processRequest( $partUrl, $postParams = array(), $deleteFlag = false ){
 
 			$url = $this->getBaseURL() . $partUrl;
 			$auth = base64_encode( 'user:' . $this->getAPIKey() );
 
+			//echo $url;
+
 			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url );
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json', 'Authorization: Basic '.$auth ) );
-			curl_setopt($ch, CURLOPT_USERAGENT, 'PHP-MCAPI/2.0');
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+			curl_setopt( $ch, CURLOPT_URL, $url );
+			curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json', 'Authorization: Basic '.$auth ) );
+			curl_setopt( $ch, CURLOPT_USERAGENT, 'PHP-MCAPI/2.0' );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 
 			if( count( $postParams ) ){
 				curl_setopt( $ch, CURLOPT_POST, true );
@@ -205,6 +207,10 @@
 				print_r( json_encode( $postParams ) );
 				echo "</pre>";
 				*/
+			}
+
+			if( $deleteFlag ){
+				curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "DELETE" );
 			}
 
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
