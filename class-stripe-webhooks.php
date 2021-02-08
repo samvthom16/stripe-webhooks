@@ -21,9 +21,17 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 		switch( $event ){
 
-			case 'sync':
+			case 'syncProducts':
 				$response = $mailchimpAPI->syncProducts();
 				break;
+
+			case 'sync':
+				/* this is a proper ajax request */
+
+				echo $this->syncMailchimp( $_GET['stripePaymentID'], $_GET['stripeCustomerID'], $_GET['amount'], $_GET['currency'], $_GET['created'] );
+
+				//print_r( $_GET );
+				wp_die();
 
 			/*
 			case 'order':
@@ -34,7 +42,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			*/
 
 			case 'deleteOrder':
-				$order_id = 'order1612454175';
+				$order_id = 'pi_1IIebGKEe1YgzvEqs2mdmpAB';
 				$store_id = $mailchimpAPI->getStoreID();
 				$apiURL = "ecommerce/stores/$store_id/orders/$order_id";
 				echo $apiURL;
@@ -42,8 +50,9 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				break;
 
 			case 'orders':
+
 				$store_id = $mailchimpAPI->getStoreID();
-				$response = $mailchimpAPI->cachedProcessRequest( 'ecommerce/stores/' . $store_id . '/orders' );
+				$response = $mailchimpAPI->processRequest( 'ecommerce/stores/' . $store_id . '/orders' );
 				break;
 
 			case 'resetOrders':
@@ -63,8 +72,36 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		wp_die();
 	}
 
+	function syncMailchimp( $stripePaymentID, $stripeCustomerID, $amount, $currency, $created ){
+
+		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
+		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
+
+		$mailchimpOrder = $mailchimpAPI->getOrderInfo( $stripePaymentID );
+
+		if( isset( $mailchimpOrder->id ) ){
+			return 'Mailchimp Order with the same ID: ' . $stripePaymentID . ' already exists.';
+		}
+
+		$email_address = $stripe->getEmailFromCustomerID( $stripeCustomerID );
+
+		$order = array(
+			'id'										=> $stripePaymentID,
+			'order_total'						=> $amount,
+			'currency_code'					=> $currency,
+			'processed_at_foreign'	=> date('c', $created )
+		);
+		$response = $mailchimpAPI->createOrderForEmailAddress( $email_address, $order );
+
+		if( isset( $response->id ) ){
+			return "Order has been succesfully created with ID: " . $response->id;
+		}
+
+		return "Order could not be created for some reason.";
+	}
+
 	function process(){
-		require_once('stripe-php/init.php');
+		//require_once('stripe-php/init.php');
 
 		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 
@@ -80,28 +117,12 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		switch ( $event->type ) {
 			case 'payment_intent.succeeded':
 				$paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
-
 				if( isset( $paymentIntent->customer ) && !empty( $paymentIntent->customer ) ){
-					$email_address = $stripe->getEmailFromCustomerID( $paymentIntent->customer );
-					$currency_code = strtoupper( $paymentIntent->currency );
-					$amount = $paymentIntent/100;
-
-					$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
-					$response = $mailchimpAPI->createOrderForAmount( $email_address, $amount, $currency_code );
-
-					if( isset( $response->id ) ){
-						echo "Order has been succesfully created with ID: " . $response->id;
-					}
+					$amount = $paymentIntent->amount;
+					$amount = $amount > 0 ? (float) $amount/100 : 0;
+					echo $this->syncMailchimp( $paymentIntent->id, $paymentIntent->customer, $amount, strtoupper( $paymentIntent->currency ), $paymentIntent->created );
 				}
-
-
-
-
-
-				// Then define and call a method to handle the successful payment intent.
-				// handlePaymentIntentSucceeded($paymentIntent);
 				break;
-
 			default:
 				echo 'Received unknown event type ' . $event->type;
 		}

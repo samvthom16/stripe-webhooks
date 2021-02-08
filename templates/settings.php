@@ -10,6 +10,11 @@
 			'action'	=> 'stores',
 			'tab'		=> plugin_dir_path(__FILE__).'settings-stores.php'
 		),
+		'payments'	=> array(
+			'label'		=> 'Recent Payments',
+			'action'	=> 'payments',
+			'tab'			=> plugin_dir_path(__FILE__).'settings-payments.php'
+		),
 	);
 
 	$screens = apply_filters( 'meteor_admin_settings_screens', $screens );

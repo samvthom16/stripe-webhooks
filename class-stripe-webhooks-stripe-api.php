@@ -51,5 +51,12 @@
 			return '';
 		}
 
+		function listPayments(){
+			$payments = \Stripe\PaymentIntent::all( array(
+				'limit'	=> 30
+			) );
+			if( isset( $payments->data ) ) return $payments->data;
+			return array();
+		}
 
 	}

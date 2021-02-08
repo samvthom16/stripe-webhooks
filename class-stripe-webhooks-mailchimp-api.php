@@ -122,6 +122,11 @@
 			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/customers//' . $customer_id );
 		}
 
+		function getOrderInfo( $order_id ){
+			$store_id = $this->getStoreID();
+			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/orders//' . $order_id );
+		}
+
 		/*
 		* MVP OF ORDER:
 		* [order_total] => 50
@@ -131,8 +136,7 @@
 
 			$unique_id = time();
 
-			if( !isset( $order['id'] ) ){ $order['id'] = 'order' . $unique_id; }
-
+			//if( !isset( $order['id'] ) ){ $order['id'] = 'order' . $unique_id; }
 			//if( !isset( $order['currency_code'] ) ){ $order['currency_code'] = 'GBP'; }
 
 			$order['lines'] = array(
@@ -148,16 +152,11 @@
 			return $this->processRequest( 'ecommerce/stores/' . $store_id . '/orders', $order );
 		}
 
-		function createOrderForAmount( $email_address, $amount, $currency_code = 'GBP' ){
-			$store_id = $this->getStoreID();
-			$customer = $this->createCustomerIfDoesNotExist( $email_address );
+		function createOrderForEmailAddress( $email_address, $order ){
+			$order['customer'] = $this->createCustomerIfDoesNotExist( $email_address );
 			$product_title = $this->getProductTitleByAmount( $amount );
 			$product_id = $this->slugify( $product_title );
-			return $this->createOrder( $product_id, array(
-				'customer'			=> $customer,
-				'order_total'		=> $amount,
-				'currency_code'	=> $currency_code
-			) );
+			return $this->createOrder( $product_id, $order );
 		}
 
 		/*
