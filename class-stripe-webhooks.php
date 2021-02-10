@@ -27,8 +27,9 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 			case 'sync':
 				/* this is a proper ajax request */
-
-				echo $this->syncMailchimp( $_GET['stripePaymentID'], $_GET['stripeCustomerID'], $_GET['amount'], $_GET['currency'], $_GET['created'] );
+				if( isset( $_GET['stripePaymentID'] ) && isset( $_GET['stripeCustomerID'] ) && isset( $_GET['amount'] ) && isset( $_GET['currency'] ) && isset( $_GET['created'] ) ){
+					echo $this->syncMailchimp( $_GET['stripePaymentID'], $_GET['stripeCustomerID'], $_GET['amount'], $_GET['currency'], $_GET['created'] );
+				}
 
 				//print_r( $_GET );
 				wp_die();
@@ -42,21 +43,29 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			*/
 
 			case 'deleteOrder':
-				$order_id = 'pi_1IIebGKEe1YgzvEqs2mdmpAB';
-				$store_id = $mailchimpAPI->getStoreID();
-				$apiURL = "ecommerce/stores/$store_id/orders/$order_id";
-				echo $apiURL;
-				$response = $mailchimpAPI->processRequest( $apiURL, array(), true );
+				if( isset( $_GET['order_id'] ) ){
+					$order_id = $_GET['order_id'];
+					$store_id = $mailchimpAPI->getStoreID();
+					$apiURL = "ecommerce/stores/$store_id/orders/$order_id";
+					$response = $mailchimpAPI->processRequest( $apiURL, array(), true );
+				}
 				break;
 
 			case 'orders':
-
 				$store_id = $mailchimpAPI->getStoreID();
 				$response = $mailchimpAPI->processRequest( 'ecommerce/stores/' . $store_id . '/orders' );
 				break;
 
-			case 'resetOrders':
-				//order1612519921
+			case 'resetProducts':
+				$store_id = $mailchimpAPI->getStoreID();
+				$products = $mailchimpAPI->processRequest( 'ecommerce/stores/' . $store_id . '/products' );
+				if( isset( $products->products ) && is_array( $products->products ) ){
+					foreach( $products->products as $product ){
+						$product_id = $product->id;
+						$apiURL = "ecommerce/stores/$store_id/products/$product_id";
+						array_push( $response, $mailchimpAPI->processRequest( $apiURL, array(), true ) );
+					}
+				}
 				break;
 
 			case 'stores':

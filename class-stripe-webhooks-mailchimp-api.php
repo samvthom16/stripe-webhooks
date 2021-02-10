@@ -28,12 +28,9 @@
 			return array(
 				'ranges' => array(
 					'Small Donation' 				=> 10,
-					'Minor Donation' 				=> 20,
 					'Medium Donation' 			=> 50,
-					'Medium Major Donation' => 100,
-					'Big Donation'					=> 500
 				),
-				'upper'	=> 'Big Major Donation'
+				'upper'	=> 'High Donation'
 			);
 		}
 
