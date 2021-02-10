@@ -13,6 +13,7 @@
 	}
 
 	$inc_files = array(
+		'stripe-php/init.php',
 		'class-stripe-webhooks-base.php',
 		'class-stripe-webhooks-stripe-api.php',
 		'class-stripe-webhooks-mailchimp-api.php',

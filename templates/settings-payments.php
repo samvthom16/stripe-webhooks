@@ -2,12 +2,13 @@
 
 	$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 
-	$cache_key = 'stripe-recent-payments';
+	$cache_key = 'stripe-recent-payments1';
 	$payments = array();
+
 	// Get any existing copy of our transient data
 	if ( false === ( $payments = get_transient( $cache_key ) ) ) {
-			$payments = $stripe->listPayments();
-			set_transient( $cache_key, $payments, 5 * MINUTE_IN_SECONDS );
+		$payments = $stripe->listPayments();
+		set_transient( $cache_key, $payments, 5 * MINUTE_IN_SECONDS );
 	}
 
 	//echo "<pre>";
@@ -20,7 +21,6 @@
 
 		_e( "<h4>List of Recent Payments</h4>" );
 		_e( "<ul class='stores-list'>" );
-
 		_e( "<li class='grid-list meta'>" );
 		_e( '<span class="number">#</span>' );
 		_e( '<span class="amount">Amount</span>' );
@@ -33,31 +33,22 @@
 		foreach( $payments as $payment ){
 
 			if( $payment->status == 'succeeded' ){
-				$amount = $payment->amount > 0 ? (float) $payment->amount/100 : 0;
-				$currency = strtoupper( $payment->currency );
-				$created = date('d M Y', $payment->created );
-
-				$script_payments[ $payment->id ] = array(
-					'stripePaymentID'		=> $payment->id,
-					'stripeCustomerID'	=> $payment->customer,
-					'amount'						=> $amount,
-					'currency'					=> $currency,
-					'created'						=> $payment->created
-				);
+				$data = $stripe->filterPaymentIntentData( $payment );
+				$script_payments[ $data['stripePaymentID'] ] = $data;
 
 				_e( "<li class='grid-list'>" );
 				_e( '<span class="number">' . $i . '</span>' );
-				_e( '<span class="amount">' . $amount . ' ' . $currency . '</span>' );
-				_e( '<span class="created">' . $created . '</span>' );
-				_e( '<span class="payment-id">' . $payment->id . '</span>' );
-				if( $payment->customer ){
-					_e( '<span class="customer">' . $payment->customer . '&nbsp;<button data-id="' . $payment->id . '" class="button">Sync</button></span>' );
+				_e( '<span class="amount">' . $data['amount'] . ' ' . $data['currency'] . '</span>' );
+				_e( '<span class="created">' . date('d M Y', $data['created'] ) . '</span>' );
+				_e( '<span class="payment-id">' . $data['stripePaymentID'] . '</span>' );
+				if( $data['stripeCustomerID'] ){
+					_e( '<span class="customer">' . $data['stripeCustomerID'] . '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button></span>' );
 				}
 				_e( "</li>" );
 				$i++;
 			}
 		}
-		_e( "<ul>" );
+		_e( "</ul>" );
 		_e( "<br><hr>" );
 
 		_e( "<script type='text/javascript'>");

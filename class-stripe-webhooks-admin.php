@@ -25,6 +25,8 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 		});
 
+
+
 	}
 
 	function setSettingsMetaOptionKey( $settingsMetaOptionKey ){ $this->settingsMetaOptionKey = $settingsMetaOptionKey; }

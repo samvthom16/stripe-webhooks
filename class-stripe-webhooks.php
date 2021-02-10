@@ -2,6 +2,8 @@
 
 class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
+	var $metafields;
+
 	function __construct(){
 		add_action( 'wp_ajax_nopriv_stripe-webhooks', array( $this, 'process' ) );
 		add_action( 'wp_ajax_stripe-webhooks', array( $this, 'process' ) );
@@ -9,6 +11,38 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		add_action( 'wp_ajax_stripe-mailchimp', array( $this, 'mailchimp' ) );
 		add_action( 'wp_ajax_nopriv_stripe-mailchimp', array( $this, 'mailchimp' ) );
 
+		add_action( 'give_after_donation_levels', array( $this, 'give_hidden_fields' ) );
+		add_filter( 'give_stripe_prepare_metadata', array( $this, 'give_stripe_prepare_data' ), 10, 3 );
+
+	}
+
+	function getMetafields(){
+		return array(
+			'utm_source',			// Google Analytics
+			'utm_campaign',		// Google Analytics
+			'utm_medium',			// Google Analytics
+			'utm_term',				// Google Analytics
+			'mc_cid',					// Mailchimp Campaign ID
+			'mc_eid'					// Mailchimp User ID
+		);
+	}
+
+	function give_hidden_fields(){
+		$metafields = $this->getMetafields();
+		foreach( $metafields as $metafield ){
+			$metavalue = isset( $_GET[ $metafield ] ) ? $_GET[ $metafield ] : "";
+			_e("<input type='hidden' name='$metafield' value='$metavalue' />");
+		}
+	}
+
+	function give_stripe_prepare_data( $args, $donation_id, $donation_data ){
+		if( is_array( $donation_data ) && isset( $donation_data['post_data'] ) ){
+			$metafields = $this->getMetafields();
+			foreach( $metafields as $metafield ){
+				$args[ $metafield ] = isset( $donation_data['post_data'][ $metafield ] ) ? $donation_data['post_data'][ $metafield ] : "";
+			}
+		}
+		return $args;
 	}
 
 	function mailchimp(){
@@ -28,7 +62,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			case 'sync':
 				/* this is a proper ajax request */
 				if( isset( $_GET['stripePaymentID'] ) && isset( $_GET['stripeCustomerID'] ) && isset( $_GET['amount'] ) && isset( $_GET['currency'] ) && isset( $_GET['created'] ) ){
-					echo $this->syncMailchimp( $_GET['stripePaymentID'], $_GET['stripeCustomerID'], $_GET['amount'], $_GET['currency'], $_GET['created'] );
+					echo $this->syncMailchimp( $_GET );
 				}
 
 				//print_r( $_GET );
@@ -81,7 +115,13 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		wp_die();
 	}
 
-	function syncMailchimp( $stripePaymentID, $stripeCustomerID, $amount, $currency, $created ){
+	function syncMailchimp( $data ){
+
+		$stripePaymentID = $data['stripePaymentID'];
+		$stripeCustomerID = $data['stripeCustomerID'];
+		$amount = $data['amount'];
+		$currency = $data['currency'];
+		$created = $data['created'];
 
 		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
@@ -100,6 +140,11 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			'currency_code'					=> $currency,
 			'processed_at_foreign'	=> date('c', $created )
 		);
+
+		if( isset( $data['campaign_id'] ) ){
+			$order['campaign_id'] = $data['campaign_id'];
+		}
+
 		$response = $mailchimpAPI->createOrderForEmailAddress( $email_address, $order );
 
 		if( isset( $response->id ) ){
@@ -127,9 +172,17 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			case 'payment_intent.succeeded':
 				$paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
 				if( isset( $paymentIntent->customer ) && !empty( $paymentIntent->customer ) ){
-					$amount = $paymentIntent->amount;
-					$amount = $amount > 0 ? (float) $amount/100 : 0;
-					echo $this->syncMailchimp( $paymentIntent->id, $paymentIntent->customer, $amount, strtoupper( $paymentIntent->currency ), $paymentIntent->created );
+					$data = $stripe->filterPaymentIntentData( $paymentIntent );
+					/*
+					$data = array(
+						'stripePaymentID' 	=> $paymentIntent->id,
+						'stripeCustomerID' 	=> $paymentIntent->customer,
+						'amount'						=> $paymentIntent->amount > 0 ? (float) $paymentIntent->amount/100 : 0,
+						'currency'					=> strtoupper( $paymentIntent->currency ),
+						'created'						=> $paymentIntent->created
+					);
+					*/
+					echo $this->syncMailchimp( $data );
 				}
 				break;
 			default:

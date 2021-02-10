@@ -5,11 +5,8 @@
 		var $settings;
 
 		function __construct(){
-			require_once('stripe-php/init.php');
-
 			$admin = STRIPE_WEBHOOKS_ADMIN::getInstance();
 			$this->setSettings( $admin->getSettings() );
-
 			\Stripe\Stripe::setApiKey( $this->getSecretKey() );
 		}
 
@@ -53,10 +50,29 @@
 
 		function listPayments(){
 			$payments = \Stripe\PaymentIntent::all( array(
-				'limit'	=> 30
+				'limit'	=> 10
 			) );
 			if( isset( $payments->data ) ) return $payments->data;
 			return array();
+		}
+
+		function filterPaymentIntentData( $payment ){
+			$amount = $payment->amount > 0 ? (float) $payment->amount/100 : 0;
+			$currency = strtoupper( $payment->currency );
+			$created = date('d M Y', $payment->created );
+
+			$data = array(
+				'stripePaymentID'		=> $payment->id,
+				'stripeCustomerID'	=> $payment->customer,
+				'amount'						=> $amount,
+				'currency'					=> $currency,
+				'created'						=> $payment->created
+			);
+
+			if( isset( $payment->metadata ) && isset( $payment->metadata->mc_cid ) && !empty( $payment->metadata->mc_cid ) ){
+				$data[ 'campaign_id' ] = $payment->metadata->mc_cid;
+			}
+			return $data;
 		}
 
 	}
