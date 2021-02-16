@@ -24,15 +24,20 @@
 
 		function getBaseURL(){ return 'https://'.$this->getServer().'.api.mailchimp.com/3.0/';}
 
+		function getProductTitle(){ return "Donation"; }
+
+		/*
 		function getUserDefinedProducts(){
 			return array(
 				'ranges' => array(
 					'Small Donation' 				=> 10,
 					'Medium Donation' 			=> 50,
+
 				),
-				'upper'	=> 'High Donation'
+				'upper'	=> 'Donation'
 			);
 		}
+		*/
 
 		function slugify( $text ){
 			$text = preg_replace('~[^\pL\d]+~u', '-', $text);
@@ -51,34 +56,13 @@
 		* SYNCH USER DEFINED PRODUCTS TO MAILCHIMP
 		*/
 		function syncProducts(){
-
-			$store_id = $this->getStoreID();
-
-			$responses = array();
-			$products = $this->getUserDefinedProducts();
-			if( isset( $products['ranges'] ) && is_array( $products['ranges'] ) ){
-				foreach( $products['ranges'] as $title => $limit ){
-					$response = $this->createProduct( array( 'title' => $title ) );
-					array_push( $responses, $response );
-				}
-			}
-			if( isset( $products['upper'] ) ){
-				$response = $this->createProduct( array( 'title' => $products['upper'] ) );
-				array_push( $responses, $response );
-			}
-			return $responses;
+			$product_title = $this->getProductTitle();
+			return $this->createProduct( array( 'title' => $product_title ) );
 		}
-
-		function getProductTitleByAmount( $amount ){
-			$products = $this->getUserDefinedProducts();
-			if( isset( $products['ranges'] ) && is_array( $products['ranges'] ) ){
-				foreach( $products['ranges'] as $title => $limit ){
-					if( $amount <= $limit ){
-						return $title;
-					}
-				}
-			}
-			return $products['upper'];
+		
+		function getStoreInfo(){
+			$store_id = $this->getStoreID();
+			return $this->processRequest( '/ecommerce/stores/' . $store_id );
 		}
 
 		function createStore( $store ){
@@ -111,6 +95,18 @@
 				'opt_in_status' => true
 			);
 			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/customers', $customer );
+		}
+
+		function getUniqueCustomer( $unique_id ){
+			$store = $this->getStoreInfo();
+			if( isset( $store->list_id ) ){
+				$list_id = $store->list_id;
+				$response = $this->processRequest( '/lists//' . $list_id . '/members/?unique_email_id=' . $unique_id );
+				if( isset( $response->members ) && is_array( $response->members ) && count( $response->members ) ){
+					return $response->members[0];
+				}
+			}
+			return null;
 		}
 
 		function getCustomer( $email_address ){
@@ -151,7 +147,7 @@
 
 		function createOrderForEmailAddress( $email_address, $order ){
 			$order['customer'] = $this->createCustomerIfDoesNotExist( $email_address );
-			$product_title = $this->getProductTitleByAmount( $amount );
+			$product_title = $this->getProductTitle();
 			$product_id = $this->slugify( $product_title );
 			return $this->createOrder( $product_id, $order );
 		}

@@ -72,6 +72,11 @@
 			if( isset( $payment->metadata ) && isset( $payment->metadata->mc_cid ) && !empty( $payment->metadata->mc_cid ) ){
 				$data[ 'campaign_id' ] = $payment->metadata->mc_cid;
 			}
+
+			if( isset( $payment->metadata ) && isset( $payment->metadata->mc_eid ) && !empty( $payment->metadata->mc_eid ) ){
+				$data[ 'mailchimp_user_id' ] = $payment->metadata->mc_eid;
+			}
+
 			return $data;
 		}
 

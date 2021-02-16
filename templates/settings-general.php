@@ -1,5 +1,5 @@
 <?php
-
+	
 	$settingsMetaOptionKey = $this->getSettingsMetaOptionKey();
 
 	$settingsOptions = $this->getSettingsOptions();

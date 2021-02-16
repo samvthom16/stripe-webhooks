@@ -15,18 +15,14 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 			add_submenu_page(
 				'options-general.php',
-				__('Stripe Webhoooks Settings', 'stripe-webhooks'),
-				__('Stripe Webhoooks Settings', 'stripe-webhooks'),
+				__('Stripe Webhooks Settings', 'stripe-webhooks'),
+				__('Stripe Webhooks Settings', 'stripe-webhooks'),
 				'manage_options',
 				'settings',
 				array( $this, 'settings_page' )
 			);
 
-
 		});
-
-
-
 	}
 
 	function setSettingsMetaOptionKey( $settingsMetaOptionKey ){ $this->settingsMetaOptionKey = $settingsMetaOptionKey; }

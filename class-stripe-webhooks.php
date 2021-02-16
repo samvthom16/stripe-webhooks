@@ -76,6 +76,18 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				break;
 			*/
 
+			case 'uniqueUser':
+				$unique_id = 'e14fd6d3ef'; //
+				$response = $mailchimpAPI->getUniqueCustomer( $unique_id );
+
+				if( $response == null ){
+					echo "Empty response";
+				}
+
+				//$response = $mailchimpAPI->getStoreInfo();
+				//echo $response->list_id;
+				break;
+
 			case 'deleteOrder':
 				if( isset( $_GET['order_id'] ) ){
 					$order_id = $_GET['order_id'];
@@ -115,6 +127,20 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		wp_die();
 	}
 
+	// CHECK IF UNIQUE MAILCHIMP USER ID EXISTS, IF YES THE RETRIEVE FROM MAILCHIMP
+	// OR GET IT FROM STRIPE ITSELF
+	function getEmailAddressFromMailchimpOrStripe( $data ){
+		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
+		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
+		if( isset( $data['mailchimp_user_id'] ) ){
+			$customer = $mailchimpAPI->getUniqueCustomer( $data['mailchimp_user_id'] );
+			if( $customer!=null && isset( $customer->email_address ) && !empty( $customer->email_address ) ){
+				return $customer->email_address;
+			}
+		}
+		return $stripe->getEmailFromCustomerID( $data['stripeCustomerID'] );
+	}
+
 	function syncMailchimp( $data ){
 
 		$stripePaymentID = $data['stripePaymentID'];
@@ -127,12 +153,11 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
 
 		$mailchimpOrder = $mailchimpAPI->getOrderInfo( $stripePaymentID );
-
 		if( isset( $mailchimpOrder->id ) ){
 			return 'Mailchimp Order with the same ID: ' . $stripePaymentID . ' already exists.';
 		}
 
-		$email_address = $stripe->getEmailFromCustomerID( $stripeCustomerID );
+		$email_address = $this->getEmailAddressFromMailchimpOrStripe( $data );
 
 		$order = array(
 			'id'										=> $stripePaymentID,
@@ -145,11 +170,15 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			$order['campaign_id'] = $data['campaign_id'];
 		}
 
+		//print_r( $order );
+
 		$response = $mailchimpAPI->createOrderForEmailAddress( $email_address, $order );
 
 		if( isset( $response->id ) ){
 			return "Order has been succesfully created with ID: " . $response->id;
 		}
+
+		//print_r( $response );
 
 		return "Order could not be created for some reason.";
 	}

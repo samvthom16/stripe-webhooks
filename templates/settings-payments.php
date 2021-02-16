@@ -2,7 +2,7 @@
 
 	$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 
-	$cache_key = 'stripe-recent-payments1';
+	$cache_key = 'stripe-recent-payments';
 	$payments = array();
 
 	// Get any existing copy of our transient data
@@ -34,6 +34,9 @@
 
 			if( $payment->status == 'succeeded' ){
 				$data = $stripe->filterPaymentIntentData( $payment );
+
+				//print_r( $data );
+
 				$script_payments[ $data['stripePaymentID'] ] = $data;
 
 				_e( "<li class='grid-list'>" );
@@ -96,6 +99,7 @@
 			$button.click( function( ev ){
 				ev.preventDefault();
 
+				console.log( window.payments[id] );
 
 				$button.html( 'Loading...' );
 
