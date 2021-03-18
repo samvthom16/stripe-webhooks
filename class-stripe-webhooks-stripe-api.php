@@ -62,16 +62,24 @@
 		}
 
 		function listPayments( $data = array( 'limit' => 10 ) ){
+			$params = array();
 
 			$url = "payment_intents?limit=" . $data['limit'];
 			if( isset( $data['starting_after'] ) && $data['starting_after'] ){
 				$url .= "&starting_after=" . $data['starting_after'];
 			}
+			elseif( isset( $data['ending_before'] ) && $data['ending_before'] ){
+				$url .= "&ending_before=" . $data['ending_before'];
+			}
+
+			if( isset( $data['created__gte'] ) && $data['created__gte'] ){
+				$url .= "&created[gte]=" . strtotime( $data['created__gte'] );
+			}
+			if( isset( $data['created__lte'] ) && $data['created__lte'] ){
+				$url .= "&created[lte]=" . strtotime( $data['created__lte'] );
+			}
 
 			return $this->processRequest( $url );
-
-			//if( isset( $payments->data ) ) return $payments->data;
-			//return array();
 		}
 
 		function getPaymentIntent( $payment_id ){
@@ -80,7 +88,9 @@
 
 		function getBaseURL(){ return "https://api.stripe.com/v1/";}
 
-		function processRequest( $partUrl, $postParams = array(), $deleteFlag = false ){
+		function processRequest( $partUrl, $method = 'get', $params = array(), $deleteFlag = false ){
+
+			//echo "hello";
 
 			$url = $this->getBaseURL() . $partUrl;
 
@@ -94,15 +104,14 @@
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 
-			if( count( $postParams ) ){
+			if( count( $params ) && $method == 'post' ){
 				curl_setopt( $ch, CURLOPT_POST, true );
-				curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $postParams ) );
+				curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $params ) );
+			}
 
-				/*
-				echo "<pre>";
-				print_r( json_encode( $postParams ) );
-				echo "</pre>";
-				*/
+			if( count( $params ) && $method == 'get' ){
+				curl_setopt( $ch, CURLOPT_GET, true );
+				curl_setopt( $ch, CURLOPT_GETFIELDS, json_encode( $params ) );
 			}
 
 			if( $deleteFlag ){
@@ -112,6 +121,9 @@
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 			$result = curl_exec($ch);
+
+			//echo $result;
+
 			return json_decode($result);
 		}
 
