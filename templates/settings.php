@@ -15,6 +15,11 @@
 			'action'	=> 'payments',
 			'tab'			=> plugin_dir_path(__FILE__).'settings-payments.php'
 		),
+		'order_info'	=> array(
+			'label'		=> 'Get Order Info',
+			'action'	=> 'order_info',
+			'tab'			=> plugin_dir_path(__FILE__).'settings-order-info.php'
+		),
 	);
 
 	$screens = apply_filters( 'meteor_admin_settings_screens', $screens );

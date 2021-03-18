@@ -59,7 +59,7 @@
 			$product_title = $this->getProductTitle();
 			return $this->createProduct( array( 'title' => $product_title ) );
 		}
-		
+
 		function getStoreInfo(){
 			$store_id = $this->getStoreID();
 			return $this->processRequest( '/ecommerce/stores/' . $store_id );
@@ -92,27 +92,54 @@
 			$customer = array(
 				'id' => $this->getSubscriberHash( $email_address ),
 				'email_address' => $email_address,
-				'opt_in_status' => true
+				'opt_in_status' => false
 			);
 			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/customers', $customer );
 		}
 
-		function getUniqueCustomer( $unique_id ){
+		function _isEmail( $email ) {
+		   $find1 = strpos( $email, '@' );
+		   $find2 = strpos( $email, '.' );
+		   return ( $find1 !== false && $find2 !== false && $find2 > $find1 );
+		}
+
+		// GET UNIQUE MEMBER BY ID OR EMAIL ADDRESS FROM THE STORE LIST
+		function getUniqueMember( $id_or_email ){
+
+			// GET E-COMMERCE STORE INFORMATION
 			$store = $this->getStoreInfo();
+
 			if( isset( $store->list_id ) ){
+
+				// GET CONNECTED LIST OF THE E-COMMERCE STORE
 				$list_id = $store->list_id;
-				$response = $this->processRequest( '/lists//' . $list_id . '/members/?unique_email_id=' . $unique_id );
-				if( isset( $response->members ) && is_array( $response->members ) && count( $response->members ) ){
-					return $response->members[0];
+
+				// CHECK IF THIS IS ID OR EMAIL
+				if( $this->_isEmail( $id_or_email ) ){
+
+					// GET USER BY EMAIL ADDRESS
+					$subscriber_hash = $this->getSubscriberHash( $id_or_email );
+					$response = $this->processRequest( "/lists/$list_id/members/$subscriber_hash" );
+					return $response;
+
+				}
+				else{
+
+					// GET USER BY UNIQUE ID
+					$response = $this->processRequest( '/lists//' . $list_id . '/members/?unique_email_id=' . $id_or_email );
+					if( isset( $response->members ) && is_array( $response->members ) && count( $response->members ) ){
+						return $response->members[0];
+					}
 				}
 			}
+
 			return null;
 		}
 
 		function getCustomer( $email_address ){
 			$store_id = $this->getStoreID();
 			$customer_id = $this->getSubscriberHash( $email_address );
-			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/customers//' . $customer_id );
+			return $this->processRequest( "/ecommerce/stores/$store_id/customers/$customer_id" );
 		}
 
 		function getOrderInfo( $order_id ){
@@ -127,30 +154,30 @@
 		function createOrder( $product_id, $order ){
 			$store_id = $this->getStoreID();
 
-			$unique_id = time();
+			// PRODUCT LINES OF ORDER
+			$order['lines'] = array( array(
+				'id'									=> 'line' . time(),
+				'product_id' 					=> $product_id,
+				'product_variant_id'	=> $product_id,
+				'quantity'						=> 1,
+				'price'								=> $order['order_total']
+			) );
 
-			//if( !isset( $order['id'] ) ){ $order['id'] = 'order' . $unique_id; }
-			//if( !isset( $order['currency_code'] ) ){ $order['currency_code'] = 'GBP'; }
+			//echo "<pre>";
+			//print_r( $order );
+			//echo "</pre>";
 
-			$order['lines'] = array(
-				array(
-					'id'									=> 'line' . $unique_id,
-					'product_id' 					=> $product_id,
-					'product_variant_id'	=> $product_id,
-					'quantity'						=> 1,
-					'price'								=> $order['order_total']
-				)
-			);
-
-			return $this->processRequest( 'ecommerce/stores/' . $store_id . '/orders', $order );
+			return $this->processRequest( "ecommerce/stores/$store_id/orders", $order );
 		}
 
+		/*
 		function createOrderForEmailAddress( $email_address, $order ){
 			$order['customer'] = $this->createCustomerIfDoesNotExist( $email_address );
 			$product_title = $this->getProductTitle();
 			$product_id = $this->slugify( $product_title );
 			return $this->createOrder( $product_id, $order );
 		}
+		*/
 
 		/*
 		* MVP OF PRODUCT: [title] => Sample Product

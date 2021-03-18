@@ -2,22 +2,25 @@
 
 	$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
 
-	$cache_key = 'stripe-recent-payments';
+	$cache_key = 'stripe-recent-payments-3';
 	$payments = array();
 
 	// Get any existing copy of our transient data
 	if ( false === ( $payments = get_transient( $cache_key ) ) ) {
-		$payments = $stripe->listPayments();
-		set_transient( $cache_key, $payments, 5 * MINUTE_IN_SECONDS );
+		$payments = $stripe->listPayments( array(
+			'limit'						=> 10,
+			//'starting_after'	=> 'pi_1IWHuaKEe1YgzvEqLAGM8f1K'
+		) );
+		set_transient( $cache_key, $payments, 7 * MINUTE_IN_SECONDS );
 	}
 
 	//echo "<pre>";
 	//print_r( $payments );
 	//echo "</pre>";
 
-	if( count( $payments ) ){
+	if( isset( $payments->data ) && count( $payments->data ) ){
 
-		$script_payments = array();
+		//$script_payments = array();
 
 		_e( "<h4>List of Recent Payments</h4>" );
 		_e( "<ul class='stores-list'>" );
@@ -30,23 +33,18 @@
 		_e( "</li>" );
 
 		$i = 1;
-		foreach( $payments as $payment ){
+		foreach( $payments->data as $payment ){
 
-			if( $payment->status == 'succeeded' ){
+			if( isset( $payment->status ) && $payment->status == 'succeeded' ){
 				$data = $stripe->filterPaymentIntentData( $payment );
-
-				//print_r( $data );
-
-				$script_payments[ $data['stripePaymentID'] ] = $data;
 
 				_e( "<li class='grid-list'>" );
 				_e( '<span class="number">' . $i . '</span>' );
 				_e( '<span class="amount">' . $data['amount'] . ' ' . $data['currency'] . '</span>' );
 				_e( '<span class="created">' . date('d M Y', $data['created'] ) . '</span>' );
 				_e( '<span class="payment-id">' . $data['stripePaymentID'] . '</span>' );
-				if( $data['stripeCustomerID'] ){
-					_e( '<span class="customer">' . $data['stripeCustomerID'] . '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button></span>' );
-				}
+				_e( '<span class="customer">' . $data['stripeCustomerID'] . '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button></span>' );
+
 				_e( "</li>" );
 				$i++;
 			}
@@ -54,9 +52,11 @@
 		_e( "</ul>" );
 		_e( "<br><hr>" );
 
-		_e( "<script type='text/javascript'>");
-		_e( "window.payments = " . json_encode( $script_payments ) . ";" );
-		_e( "</script>");
+
+		//echo '<pre>';
+		//print_r( $payments );
+		//echo '</pre>';
+
 	}
 ?>
 <style>
@@ -99,13 +99,15 @@
 			$button.click( function( ev ){
 				ev.preventDefault();
 
-				console.log( window.payments[id] );
+				//console.log( window.payments[id] );
 
 				$button.html( 'Loading...' );
 
 				jQuery.ajax({
 					url				: "<?php echo admin_url('admin-ajax.php'); ?>?action=stripe-mailchimp&event=sync",
-					data			: window.payments[id],
+					data			: {
+						stripePaymentID: id
+					},
 					success		: function( response ){
 						alert( response );
 						$button.html( button_text );
