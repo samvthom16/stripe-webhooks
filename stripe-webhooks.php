@@ -3,7 +3,7 @@
 	Plugin Name: Stripe Webhooks
 	Plugin URI: https://sputznik.com/
 	Description: Custom built for ADF
-	Version: 1.0.1
+	Version: 2.0.0
 	Author: Samuel Thomas, Sputznik
 	Author URI: https://sputznik.com/
 */
