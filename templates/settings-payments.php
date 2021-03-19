@@ -11,9 +11,6 @@
 		}
 	}
 
-	//print_r( $args );
-
-
 
 	//$uniqueID = substr( md5( json_encode( $args ) ), 0, 10 );
 
@@ -31,8 +28,6 @@
 	//echo "</pre>";
 
 	if( isset( $payments->data ) && count( $payments->data ) ){
-
-		//$script_payments = array();
 
 		_e( "<h4>List of Recent Payments</h4>" );
 		_e( "<ul class='stores-list'>" );
@@ -53,28 +48,23 @@
 
 			if( $i == 1 ) $first_payment_id = $data['stripePaymentID'];
 
+			$status = $payment->status;
 
+			$last_payment_id = $data['stripePaymentID'];
 
-				$status = $payment->status;
+			_e( "<li class='grid-list $status'>" );
+			_e( '<span class="number">' . $i . '</span>' );
+			_e( '<span class="amount">' . $data['amount'] . ' ' . $data['currency'] . '</span>' );
+			_e( '<span class="created">' . date('d M Y', $data['created'] ) . '</span>' );
+			_e( '<span class="payment-id">' . $data['stripePaymentID'] . '</span>' );
+			_e( '<span class="customer">' . $data['stripeCustomerID'] );
+			if( isset( $payment->status ) && $payment->status == 'succeeded' ){
+				_e( '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button>' );
+			}
+			_e( '</span>' );
+			_e( "</li>" );
 
-				$last_payment_id = $data['stripePaymentID'];
-
-				_e( "<li class='grid-list $status'>" );
-				_e( '<span class="number">' . $i . '</span>' );
-				_e( '<span class="amount">' . $data['amount'] . ' ' . $data['currency'] . '</span>' );
-				_e( '<span class="created">' . date('d M Y', $data['created'] ) . '</span>' );
-				_e( '<span class="payment-id">' . $data['stripePaymentID'] . '</span>' );
-				_e( '<span class="customer">' . $data['stripeCustomerID'] );
-
-				if( isset( $payment->status ) && $payment->status == 'succeeded' ){
-					_e( '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button>' );
-				}
-
-				_e( '</span>' );
-
-				_e( "</li>" );
-				$i++;
-			//}
+			$i++;
 		}
 		_e( "</ul>" );
 

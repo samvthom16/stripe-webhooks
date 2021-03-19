@@ -1,63 +1,33 @@
 <?php
 
-	class STRIPE_WEBHOOKS_MAILCHIMP_API extends STRIPE_WEBHOOKS_BASE{
+	class STRIPE_WEBHOOKS_MAILCHIMP_API extends STRIPE_WEBHOOKS_API{
 
-		var $settings;
-
-		function __construct(){
-			$admin = STRIPE_WEBHOOKS_ADMIN::getInstance();
-			$this->setSettings( $admin->getSettings() );
-		}
-
-		function setSettings( $settings ){ $this->settings = $settings; }
-		function getSettings(){ return $this->settings; }
-
-		function getEachSetting( $key ){
-			$settings = $this->getSettings();
-			if( isset( $settings[ $key ] ) ) return $settings[ $key ];
-			return '';
-		}
-
+		/* API RELATED DATA */
 		function getAPIKey(){ return $this->getEachSetting( 'mailchimpAPIKey' ); }
-		function getServer(){ return $this->getEachSetting( 'mailchimpServer' ); }
-		function getStoreID(){ return $this->getEachSetting( 'mailchimpStoreID' ); }
-
-		function getBaseURL(){ return 'https://'.$this->getServer().'.api.mailchimp.com/3.0/';}
-
-		function getProductTitle(){ return "Donation"; }
-
-		/*
-		function getUserDefinedProducts(){
-			return array(
-				'ranges' => array(
-					'Small Donation' 				=> 10,
-					'Medium Donation' 			=> 50,
-
-				),
-				'upper'	=> 'Donation'
-			);
+		function getBaseURL(){ return 'https://' . $this->getEachSetting( 'mailchimpServer' ) . '.api.mailchimp.com/3.0/'; }
+		function getHTTPHeader(){
+			$auth = base64_encode( 'user:' . $this->getAPIKey() );
+			return array( 'Content-Type: application/json', 'Authorization: Basic '.$auth );
 		}
-		*/
+		/* API RELATED DATA */
 
-		function slugify( $text ){
-			$text = preg_replace('~[^\pL\d]+~u', '-', $text);
-			$text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-			$text = preg_replace('~[^-\w]+~', '', $text);
-			$text = trim($text, '-');
-			$text = preg_replace('~-+~', '-', $text);
-			$text = strtolower($text);
-			if ( empty( $text ) ) {
-		    return 'n-a';
-		  }
-			return $text;
+		function getStoreID(){ return $this->getEachSetting( 'mailchimpStoreID' ); }
+		function getProductTitle(){ return "Donation"; }
+		function getUserDefinedProducts(){
+			return array('Donation', 'Recurring Donation');
 		}
 
 		/*
 		* SYNCH USER DEFINED PRODUCTS TO MAILCHIMP
 		*/
 		function syncProducts(){
-			$product_title = $this->getProductTitle();
-			return $this->createProduct( array( 'title' => $product_title ) );
+			$responses = array();
+			$products = $this->getUserDefinedProducts();
+			foreach( $products as $product ){
+				$response = $this->createProduct( array( 'title' => $product ) );
+				array_push( $responses, $response );
+			}
+			return $responses;
 		}
 
 		function getStoreInfo(){
@@ -69,12 +39,6 @@
 			if( !isset( $store['id'] ) ) $store['id'] = $this->slugify( $store['name'] );
 			return $this->processRequest( '/ecommerce/stores', $store );
 		}
-
-		/*
-		* TAKES EMAIL ADDRESS AS ARGUMENT AND RETURNS MD5 HASH
-		*/
-		function getSubscriberHash( $email_address ){ return md5( strtolower( $email_address ) ); }
-
 
 
 		// CREATE CUSTOMER IF DOES NOT EXIST
@@ -203,51 +167,5 @@
 			return $this->processRequest( 'ecommerce/stores/' . $store_id . '/products', $product );
 		}
 
-		function processRequest( $partUrl, $postParams = array(), $deleteFlag = false ){
-
-			$url = $this->getBaseURL() . $partUrl;
-			$auth = base64_encode( 'user:' . $this->getAPIKey() );
-
-			//echo $url;
-
-			$ch = curl_init();
-			curl_setopt( $ch, CURLOPT_URL, $url );
-			curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json', 'Authorization: Basic '.$auth ) );
-			curl_setopt( $ch, CURLOPT_USERAGENT, 'PHP-MCAPI/2.0' );
-			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
-
-			if( count( $postParams ) ){
-				curl_setopt( $ch, CURLOPT_POST, true );
-				curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $postParams ) );
-
-				/*
-				echo "<pre>";
-				print_r( json_encode( $postParams ) );
-				echo "</pre>";
-				*/
-			}
-
-			if( $deleteFlag ){
-				curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "DELETE" );
-			}
-
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-			$result = curl_exec($ch);
-			return json_decode($result);
-		}
-
-		function cachedProcessRequest( $partUrl, $postParams = array() ){
-			$cache_key = 'stripe-mc' . md5( $partUrl );
-			$data = array();
-
-			// Get any existing copy of our transient data
-			if ( false === ( $data = get_transient( $cache_key ) ) ) {
-			    $data = $this->processRequest( $partUrl, $postParams );
-			    set_transient( $cache_key, $data, 5 * MINUTE_IN_SECONDS );
-			}
-			return $data;
-		}
 
 	}

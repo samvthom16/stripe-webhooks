@@ -44,7 +44,7 @@
 			_e( '<span class="payment-id">Payment #</span>' );
 			_e( '<span class="customer">Customer</span>' );
 			_e( "</li>" );
-			
+
 			_e( "<li class='grid-list'>" );
 			_e( '<span class="number">' . $i . '</span>' );
 			_e( '<span class="amount">' . $order->order_total . ' ' . $order->currency_code . '</span>' );
@@ -59,13 +59,6 @@
 			$this->displayErrorNotice( "This order does not exist in the Mailchimp E-Commerce Store." );
 
 		}
-
-
-
-		//echo "<pre>";
-		//print_r( $order );
-		//echo "</pre>";
-
 	}
 
 

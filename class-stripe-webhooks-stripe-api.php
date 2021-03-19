@@ -1,49 +1,25 @@
 <?php
 
-	class STRIPE_WEBHOOKS_STRIPE_API extends STRIPE_WEBHOOKS_BASE{
+	class STRIPE_WEBHOOKS_STRIPE_API extends STRIPE_WEBHOOKS_API{
 
 		var $settings;
 
-		function __construct(){
-			$admin = STRIPE_WEBHOOKS_ADMIN::getInstance();
-			$this->setSettings( $admin->getSettings() );
-			//\Stripe\Stripe::setApiKey( $this->getSecretKey() );
-		}
-
-		function setSettings( $settings ){ $this->settings = $settings; }
-		function getSettings(){ return $this->settings; }
-
-		function getEachSetting( $key ){
-			$settings = $this->getSettings();
-			if( isset( $settings[ $key ] ) ) return $settings[ $key ];
-			return '';
-		}
-
+		/* API RELATED DATA */
+		function getBaseURL(){ return "https://api.stripe.com/v1/";}
+		function getHTTPHeader(){ return array( 'Content-Type: application/json', 'Authorization: Bearer '.$this->getSecretKey() ); }
 		function getSecretKey(){ return $this->getEachSetting( 'stripeSecret' ); }
 		function getPublishableKey(){ return $this->getEachSetting( 'stripePublishable' ); }
+		/* API RELATED DATA */
 
+		/*
+		* USED TO HANDLE WEBHOOK EVENT
+		*/
 		function getEventFromPayload(){
 			$payload = @file_get_contents('php://input');
 			$event = null;
-
 			try {
 					$event = json_decode( $payload, true );
-
-					/*
-					if( isset( $data['type'] ) ){
-						$event->type = $data['type'];
-					}
-
-					if( isset( $data['data'] ) && isset( $data['data']['object'] ) ){
-						$event->paymentIntent = $data['data']['object'];
-					}
-
-					/*
-					$event = \Stripe\Event::constructFrom(
-							json_decode($payload, true)
-					);
-					*/
-			} catch(\UnexpectedValueException $e) {
+			} catch( Exception $e ) {
 					// Invalid payload
 					http_response_code(400);
 					exit();
@@ -86,47 +62,9 @@
 			return $this->processRequest( "payment_intents/$payment_id" );
 		}
 
-		function getBaseURL(){ return "https://api.stripe.com/v1/";}
-
-		function processRequest( $partUrl, $method = 'get', $params = array(), $deleteFlag = false ){
-
-			//echo "hello";
-
-			$url = $this->getBaseURL() . $partUrl;
-
-
-			//echo $url;
-
-			$ch = curl_init();
-			curl_setopt( $ch, CURLOPT_URL, $url );
-			curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Content-Type: application/json', 'Authorization: Bearer '.$this->getSecretKey() ) );
-			curl_setopt( $ch, CURLOPT_USERAGENT, 'PHP-MCAPI/2.0' );
-			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
-
-			if( count( $params ) && $method == 'post' ){
-				curl_setopt( $ch, CURLOPT_POST, true );
-				curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $params ) );
-			}
-
-			if( count( $params ) && $method == 'get' ){
-				curl_setopt( $ch, CURLOPT_GET, true );
-				curl_setopt( $ch, CURLOPT_GETFIELDS, json_encode( $params ) );
-			}
-
-			if( $deleteFlag ){
-				curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "DELETE" );
-			}
-
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-			$result = curl_exec($ch);
-
-			//echo $result;
-
-			return json_decode($result);
-		}
-
+		/*
+		* CONVERT PAYMENT INTENT OBJECT INTO A SMALL ARRAY WITH ONLY THE REQUIRED VALUES
+		*/
 		function filterPaymentIntentData( $payment ){
 
 			$amount = $payment->amount > 0 ? (float) $payment->amount/100 : 0;
