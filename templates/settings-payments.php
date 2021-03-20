@@ -57,10 +57,18 @@
 			_e( '<span class="amount">' . $data['amount'] . ' ' . $data['currency'] . '</span>' );
 			_e( '<span class="created">' . date('d M Y', $data['created'] ) . '</span>' );
 			_e( '<span class="payment-id">' . $data['stripePaymentID'] . '</span>' );
-			_e( '<span class="customer">' . $data['stripeCustomerID'] );
+			_e( '<span class="customer">' );
+
+			if( $status != 'succeeded' ){
+				echo "<i title='$status' class='dashicons dashicons-bell'></i>&nbsp;";
+			}
+
+			echo $data['stripeCustomerID'];
+
 			if( isset( $payment->status ) && $payment->status == 'succeeded' ){
 				_e( '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button>' );
 			}
+
 			_e( '</span>' );
 			_e( "</li>" );
 
