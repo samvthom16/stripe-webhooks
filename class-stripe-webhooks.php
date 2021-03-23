@@ -132,6 +132,41 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				}
 				break;
 
+			case 'getCustomer':
+
+				if( isset( $_GET['email_address'] ) ){
+					$response = $mailchimpAPI->getCustomer( $_GET['email_address'] );
+
+					/*
+
+					// CREATE CUSTOMER
+
+					$store_id = $mailchimpAPI->getStoreID();
+					$customer = array(
+						'id' 						=> $mailchimpAPI->getSubscriberHash( $_GET['email_address'] ),
+						'email_address' => $_GET['email_address'],
+						'opt_in_status' => true,
+						'first_name'		=> 'Miguel',
+						'last_name'			=> 'Ortiz'
+					);
+					$response = $mailchimpAPI->processRequest( '/ecommerce/stores/' . $store_id . '/customers', $customer );
+					*/
+
+					/*
+
+					// DELETE CUSTOMER FROM MAILCHIMP
+
+					$orders = $mailchimpAPI->listOrdersByCustomer( $_GET['email_address'] );
+					foreach( $orders->orders as $order ){
+						$mailchimpAPI->deleteOrder( $order->id );
+					}
+					$response = $mailchimpAPI->deleteCustomer( $_GET['email_address'] );
+					*/
+
+					//$response = $mailchimpAPI->processRequest( "search-members/?list_id=$list_id&query=sam@sputznik.com" );
+				}
+
+				break;
 
 			case 'uniqueUser':
 				$unique_id = 'd7609f5aec'; //
@@ -148,9 +183,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			case 'deleteOrder':
 				if( isset( $_GET['order_id'] ) ){
 					$order_id = $_GET['order_id'];
-					$store_id = $mailchimpAPI->getStoreID();
-					$apiURL = "ecommerce/stores/$store_id/orders/$order_id";
-					$response = $mailchimpAPI->processRequest( $apiURL, array(), true );
+					$response = $mailchimpAPI->deleteOrder( $order_id );
 				}
 				break;
 
@@ -215,6 +248,9 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			$mc_customer = $mailchimpAPI->getUniqueMember( $data['mailchimp_user_id'] );
 			if( $mc_customer!=null && isset( $mc_customer->email_address ) && !empty( $mc_customer->email_address ) ){
 
+				$customer[ 'first_name' ] = $mc_customer->first_name;
+				$customer[ 'last_name' ] = $mc_customer->last_name;
+
 				// IF MEMBER EXISTS THEN SET THE OPT_IN_STATUS TO TRUE
 				$customer[ 'email_address' ] = $mc_customer->email_address;
 				$customer[ 'opt_in_status' ] = true;
@@ -230,6 +266,9 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			// CHECK IF THERE EXISTS A MEMBER FOR THE SAME EMAIL ADDRESS IN THE STORE LIST
 			$mc_customer = $mailchimpAPI->getUniqueMember( $customer[ 'email_address' ] );
 			if( $mc_customer!=null && isset( $mc_customer->email_address ) && !empty( $mc_customer->email_address ) ){
+
+				$customer[ 'first_name' ] = $mc_customer->first_name;
+				$customer[ 'last_name' ] = $mc_customer->last_name;
 
 				// IF MEMBER EXISTS THEN SET THE OPT_IN_STATUS TO TRUE
 				$customer[ 'opt_in_status' ] = true;
@@ -293,7 +332,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				*	IF STORE ID IS NOT SET IN METADATA, THAT MEANS THE PAYMENT INTENT IS OLD
 				* IN THAT CASE DONT CHECK FOR THE STORE ID
 				*/
-				if( $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
+				if( isset( $data['mailchimp_store_id'] ) && $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
 
 					//echo "Payment data array is valid";
 

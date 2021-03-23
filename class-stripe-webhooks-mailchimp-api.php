@@ -106,9 +106,26 @@
 			return $this->processRequest( "/ecommerce/stores/$store_id/customers/$customer_id" );
 		}
 
+		function deleteCustomer( $email_address ){
+			$store_id = $this->getStoreID();
+			$customer_id = $this->getSubscriberHash( $email_address );
+			return $this->processRequest( "/ecommerce/stores/$store_id/customers/$customer_id", array(), true );
+		}
+
+		function listOrdersByCustomer( $email_address ){
+			$store_id = $this->getStoreID();
+			$customer_id = $this->getSubscriberHash( $email_address );
+			return $this->processRequest( "/ecommerce/stores/$store_id/orders?customer_id=$customer_id" );
+		}
+
 		function getOrderInfo( $order_id ){
 			$store_id = $this->getStoreID();
 			return $this->processRequest( '/ecommerce/stores/' . $store_id . '/orders//' . $order_id );
+		}
+
+		function deleteOrder( $order_id ){
+			$store_id = $this->getStoreID();
+			return $this->processRequest( "ecommerce/stores/$store_id/orders/$order_id", array(), true );
 		}
 
 		/*

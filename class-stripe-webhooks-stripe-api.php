@@ -31,6 +31,22 @@
 			return $this->processRequest( "customers/$customer_id" );
 		}
 
+		/*
+		function filterDataForMailchimp( $customer ) {
+
+			$data = array(
+				'first_name' 	=> '',
+				'last_name' 	=> '',
+			);
+
+	    $name = trim( $customer->name );
+	    $data['last_name'] = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+	    $data['first_name'] = trim( preg_replace('#'.preg_quote($last_name,'#').'#', '', $name ) );
+
+	    return $data;
+		}
+		*/
+
 		function getEmailFromCustomerID( $customer_id ){
 			$customer = $this->getCustomer( $customer_id );
 			if( isset( $customer->email ) ) return $customer->email;
