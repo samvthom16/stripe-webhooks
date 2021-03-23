@@ -252,10 +252,10 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 	function checkIfRightStore( $mc_store_id ){
 		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
-		if( isset( $mc_store_id ) && ( $mc_store_id ==  $mailchimpAPI->getStoreID() ) ){
+		if( $mc_store_id ==  $mailchimpAPI->getStoreID() ){
 			return true;
 		}
-		return true;
+		return false;
 	}
 
 	function test( $data ){
@@ -293,7 +293,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				*	IF STORE ID IS NOT SET IN METADATA, THAT MEANS THE PAYMENT INTENT IS OLD
 				* IN THAT CASE DONT CHECK FOR THE STORE ID
 				*/
-				if( !isset( $data[ 'mailchimp_store_id' ] ) || $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
+				if( $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
 
 					//echo "Payment data array is valid";
 
