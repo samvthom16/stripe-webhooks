@@ -161,7 +161,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		wp_die();
 	}
 
-	
+
 	function getCustomer( $data ){
 
 		$customer = array(
@@ -439,17 +439,19 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		/* Handle the event */
 		switch ( $event['type'] ) {
 			case 'payment_intent.succeeded':
-
-				if( isset( $event['data'] ) && isset( $event['data']['object'] ) ){
-					$paymentIntent = $event['data']['object']; 	// contains a \Stripe\PaymentIntent
-
-					if( isset( $paymentIntent['id'] ) ){
-						//echo $paymentIntent['id'];
-						echo $this->syncMailchimp( $paymentIntent['id'] );
-					}
-					else{
-						echo "Payment ID or Customer is NULL";
-					}
+				if( isset( $event['data'] ) && isset( $event['data']['object'] ) && isset( $event['data']['object']['id'] ) ){
+					echo $this->syncMailchimpWithStripe( $event['data']['object']['id'] );
+				}
+				else{
+					echo "Invalid event data";
+				}
+				break;
+			case 'invoice.finalized':
+				if( isset( $event['data'] ) && isset( $event['data']['object'] ) && isset( $event['data']['object']['id'] ) ){
+					echo $this->syncMailchimpWithStripe( $event['data']['object']['id'], 'invoice' );
+				}
+				else{
+					echo "Invalid event data";
 				}
 				break;
 			default:
