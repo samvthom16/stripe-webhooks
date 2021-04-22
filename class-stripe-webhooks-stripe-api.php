@@ -74,8 +74,37 @@
 			return $this->processRequest( $url );
 		}
 
+		function listInvoices( $data = array( 'limit' => 10 ) ){
+			$params = array();
+
+			$url = "invoices?limit=" . $data['limit'] . "&status=paid";
+			if( isset( $data['starting_after'] ) && $data['starting_after'] ){
+				$url .= "&starting_after=" . $data['starting_after'];
+			}
+			elseif( isset( $data['ending_before'] ) && $data['ending_before'] ){
+				$url .= "&ending_before=" . $data['ending_before'];
+			}
+
+			if( isset( $data['created__gte'] ) && $data['created__gte'] ){
+				$url .= "&created[gte]=" . strtotime( $data['created__gte'] );
+			}
+			if( isset( $data['created__lte'] ) && $data['created__lte'] ){
+				$url .= "&created[lte]=" . strtotime( $data['created__lte'] );
+			}
+
+			return $this->processRequest( $url );
+		}
+
 		function getPaymentIntent( $payment_id ){
 			return $this->processRequest( "payment_intents/$payment_id" );
+		}
+
+		function getInvoice( $invoice_id ){
+			return $this->processRequest( "invoices/$invoice_id" );
+		}
+
+		function getSubscription( $subscription_id ){
+			return $this->cachedProcessRequest( "subscriptions/$subscription_id" );
 		}
 
 		/*
@@ -108,6 +137,51 @@
 			}
 
 			return $data;
+		}
+
+		/*
+		* CONVERT INVOICE OBJECT INTO A SMALL ARRAY WITH ONLY THE REQUIRED VALUES
+		*/
+		function filterInvoiceData( $invoice ){
+
+			$amount = $invoice->amount_paid > 0 ? (float) $invoice->amount_paid/100 : 0;
+			$currency = strtoupper( $invoice->currency );
+			$created = date('d M Y', $invoice->created );
+
+			$data = array(
+				'stripePaymentID'		=> $invoice->id,
+				'stripeCustomerID'	=> ( !isset( $invoice->customer ) || !$invoice->customer ) ? null : $invoice->customer,
+				'amount'						=> $amount,
+				'currency'					=> $currency,
+				'created'						=> $invoice->created,
+				'subscription'			=> $invoice->subscription
+			);
+
+			if( isset( $invoice->subscription ) && !empty( $invoice->subscription ) ){
+				$subscription = $this->getSubscription( $invoice->subscription );
+
+				if( isset( $subscription->metadata ) && isset( $subscription->metadata->mc_cid ) && !empty( $subscription->metadata->mc_cid ) ){
+					$data[ 'campaign_id' ] = $subscription->metadata->mc_cid;
+				}
+
+				if( isset( $subscription->metadata ) && isset( $subscription->metadata->mc_eid ) && !empty( $subscription->metadata->mc_eid ) ){
+					$data[ 'mailchimp_user_id' ] = $subscription->metadata->mc_eid;
+				}
+
+				if( isset( $subscription->metadata ) && isset( $subscription->metadata->mc_sid ) && !empty( $subscription->metadata->mc_sid ) ){
+					$data[ 'mailchimp_store_id' ] = $subscription->metadata->mc_sid;
+				}
+			}
+
+			//echo "<pre>";
+			//print_r( $subscription );
+			//echo "</pre>";
+
+			//echo $payment->subscription;
+			//echo $invoice->payment_intent;
+
+			return $data;
+
 		}
 
 	}

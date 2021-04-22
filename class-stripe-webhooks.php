@@ -71,45 +71,18 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				$response = $mailchimpAPI->syncProducts();
 				break;
 
-			case 'sync':
-
-				//$payment_id = 'pi_1IW3eiKEe1YgzvEqdvI67lNC';
-
-				//$stripeAPI = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
-				//$response = $stripeAPI->getPaymentIntent( $payment_id );
-
-				/* this is a proper ajax request */
-				//if( isset( $_GET['stripePaymentID'] ) && isset( $_GET['stripeCustomerID'] ) && isset( $_GET['amount'] ) && isset( $_GET['currency'] ) && isset( $_GET['created'] ) ){
-					//echo $this->syncMailchimp( $_GET );
-				//}
-
+			case 'syncInvoice':
 				if( isset( $_GET['stripePaymentID'] ) ){
-					echo $this->syncMailchimp( $_GET['stripePaymentID'] );
+					echo $this->syncMailchimpWithStripe( $_GET['stripePaymentID'], 'invoice' );
 					wp_die();
 				}
-
 				break;
 
-			/*
-			case 'order':
-				$amount = 20;
-				$email_address = 'sam@sputznik.com';
-				$response = $mailchimpAPI->createOrderForAmount( $email_address, $amount );
-				break;
-			*/
-
-			case 'test':
-
-				/*
-				$response = $this->getCustomer( array(
-					'mailchimp_user_id' => 'd7609f5aec',
-					'stripeCustomerID'	=> 'cus_Iv7HZUgGePpZAC'
-				) );
-				*/
-
-
-				$response = $mailchimpAPI->getOrderInfo( 'pi_1IWIU0KEe1YgzvEqZ8d7gjoo' );
-
+			case 'syncPayment':
+				if( isset( $_GET['stripePaymentID'] ) ){
+					echo $this->syncMailchimpWithStripe( $_GET['stripePaymentID'] );
+					wp_die();
+				}
 				break;
 
 			case 'list':
@@ -133,39 +106,9 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				break;
 
 			case 'getCustomer':
-
 				if( isset( $_GET['email_address'] ) ){
 					$response = $mailchimpAPI->getCustomer( $_GET['email_address'] );
-
-					/*
-
-					// CREATE CUSTOMER
-
-					$store_id = $mailchimpAPI->getStoreID();
-					$customer = array(
-						'id' 						=> $mailchimpAPI->getSubscriberHash( $_GET['email_address'] ),
-						'email_address' => $_GET['email_address'],
-						'opt_in_status' => true,
-						'first_name'		=> 'Miguel',
-						'last_name'			=> 'Ortiz'
-					);
-					$response = $mailchimpAPI->processRequest( '/ecommerce/stores/' . $store_id . '/customers', $customer );
-					*/
-
-					/*
-
-					// DELETE CUSTOMER FROM MAILCHIMP
-
-					$orders = $mailchimpAPI->listOrdersByCustomer( $_GET['email_address'] );
-					foreach( $orders->orders as $order ){
-						$mailchimpAPI->deleteOrder( $order->id );
-					}
-					$response = $mailchimpAPI->deleteCustomer( $_GET['email_address'] );
-					*/
-
-					//$response = $mailchimpAPI->processRequest( "search-members/?list_id=$list_id&query=sam@sputznik.com" );
 				}
-
 				break;
 
 			case 'uniqueUser':
@@ -181,6 +124,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				break;
 
 			case 'deleteOrder':
+				//echo "delete order";
 				if( isset( $_GET['order_id'] ) ){
 					$order_id = $_GET['order_id'];
 					$response = $mailchimpAPI->deleteOrder( $order_id );
@@ -217,22 +161,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		wp_die();
 	}
 
-	/*
-	// CHECK IF UNIQUE MAILCHIMP USER ID EXISTS, IF YES THE RETRIEVE FROM MAILCHIMP
-	// OR GET IT FROM STRIPE ITSELF
-	function getEmailAddressFromMailchimpOrStripe( $data ){
-		$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
-		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
-		if( isset( $data['mailchimp_user_id'] ) ){
-			$customer = $mailchimpAPI->getUniqueCustomer( $data['mailchimp_user_id'] );
-			if( $customer!=null && isset( $customer->email_address ) && !empty( $customer->email_address ) ){
-				return $customer->email_address;
-			}
-		}
-		return $stripe->getEmailFromCustomerID( $data['stripeCustomerID'] );
-	}
-	*/
-
+	
 	function getCustomer( $data ){
 
 		$customer = array(
@@ -248,8 +177,14 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			$mc_customer = $mailchimpAPI->getUniqueMember( $data['mailchimp_user_id'] );
 			if( $mc_customer!=null && isset( $mc_customer->email_address ) && !empty( $mc_customer->email_address ) ){
 
-				$customer[ 'first_name' ] = $mc_customer->first_name;
-				$customer[ 'last_name' ] = $mc_customer->last_name;
+				if( isset( $mc_customer->merge_fields ) ){
+					if( isset( $mc_customer->merge_fields->FNAME ) ){
+						$customer[ 'first_name' ] = $mc_customer->merge_fields->FNAME;
+					}
+					if( isset( $mc_customer->merge_fields->LNAME ) ){
+						$customer[ 'last_name' ] = $mc_customer->merge_fields->LNAME;
+					}
+				}
 
 				// IF MEMBER EXISTS THEN SET THE OPT_IN_STATUS TO TRUE
 				$customer[ 'email_address' ] = $mc_customer->email_address;
@@ -267,8 +202,14 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 			$mc_customer = $mailchimpAPI->getUniqueMember( $customer[ 'email_address' ] );
 			if( $mc_customer!=null && isset( $mc_customer->email_address ) && !empty( $mc_customer->email_address ) ){
 
-				$customer[ 'first_name' ] = $mc_customer->first_name;
-				$customer[ 'last_name' ] = $mc_customer->last_name;
+				if( isset( $mc_customer->merge_fields ) ){
+					if( isset( $mc_customer->merge_fields->FNAME ) ){
+						$customer[ 'first_name' ] = $mc_customer->merge_fields->FNAME;
+					}
+					if( isset( $mc_customer->merge_fields->LNAME ) ){
+						$customer[ 'last_name' ] = $mc_customer->merge_fields->LNAME;
+					}
+				}
 
 				// IF MEMBER EXISTS THEN SET THE OPT_IN_STATUS TO TRUE
 				$customer[ 'opt_in_status' ] = true;
@@ -282,6 +223,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 			// ADD SUBSCRIBER HASH AS ID FOR THE CUSTOMER ONLY IF EMAIL ADDRESS EXISTS
 			$customer[ 'id' ]  = $mailchimpAPI->getSubscriberHash( $customer[ 'email_address' ] );
+
 			return $customer;
 		}
 
@@ -303,6 +245,86 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 		echo "</pre>";
 	}
 
+	function syncMailchimpWithStripe( $payment_id_or_invoice_id, $type = 'payment' ){
+		$stripeAPI = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
+		$product_id = '';
+		$data = array();
+
+		switch( $type ){
+			case 'invoice':
+				$invoice = $stripeAPI->getInvoice( $payment_id_or_invoice_id );
+				if( $invoice == null ) return "Invoice has returned null";
+				$data = $stripeAPI->filterInvoiceData( $invoice );
+				$product_id = 'recurring-donation';
+				break;
+
+			default:
+				$paymentIntent = $stripeAPI->getPaymentIntent( $payment_id_or_invoice_id );
+				if( $paymentIntent == null ) return "Payment Intent has returned null";
+				$data = $stripeAPI->filterPaymentIntentData( $paymentIntent );
+				$product_id = 'donation';
+				break;
+		}
+		return $this->syncMailchimp( $data, $product_id );
+	}
+
+
+
+	/*
+	* [stripePaymentID]
+	* [stripeCustomerID]
+	* [amount]
+	* [currency]
+	* [created]
+	* [campaign_id]
+	* [mailchimp_store_id]
+	* [mailchimp_user_id]
+	*/
+	function syncMailchimp( $data, $product_id ){
+
+		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
+
+		//$this->test( $data );
+
+		if( isset( $data['stripeCustomerID'] ) && $data['stripeCustomerID'] != null &&
+				isset( $data['mailchimp_store_id'] ) && $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
+
+			// CHECK IF ORDER ALREADY EXISTS IN MAILCHIMP
+			$mailchimpOrder = $mailchimpAPI->getOrderInfo( $data['stripePaymentID'] );
+
+			if( isset( $mailchimpOrder->id ) ) return 'Mailchimp Order with the same ID: ' . $data['stripePaymentID'] . ' already exists.';
+
+			$customer = $this->getCustomer( $data );
+
+			if( $customer != null ){
+
+				$order = array(
+					'id'										=> $data['stripePaymentID'],
+					'order_total'						=> $data['amount'],
+					'currency_code'					=> $data['currency'],
+					'processed_at_foreign'	=> date( 'c', $data['created'] ),
+					'customer'							=> $customer
+				);
+
+				if( isset( $data['campaign_id'] ) ) $order['campaign_id'] = $data['campaign_id'];
+
+				//$this->test( $order );
+
+				$response = $mailchimpAPI->createOrder( $product_id, $order );
+				if( isset( $response->id ) ) return "Order has been succesfully created with ID: " . $response->id;
+				else return "Order creation threw errors";
+
+			}
+		}
+		else{
+			return "Order could not be created because of invalid customer or store";
+		}
+
+	}
+
+
+
+	/*
 	function syncMailchimp( $id_or_data ){
 
 		$stripeAPI = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
@@ -331,7 +353,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				/*
 				*	IF STORE ID IS NOT SET IN METADATA, THAT MEANS THE PAYMENT INTENT IS OLD
 				* IN THAT CASE DONT CHECK FOR THE STORE ID
-				*/
+				*
 				if( isset( $data['mailchimp_store_id'] ) && $this->checkIfRightStore( $data[ 'mailchimp_store_id' ] ) ){
 
 					//echo "Payment data array is valid";
@@ -405,6 +427,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 		return "Order could not be created for some reason.";
 	}
+	*/
 
 	function process(){
 		//require_once('stripe-php/init.php');

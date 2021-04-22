@@ -15,6 +15,11 @@
 			'action'	=> 'payments',
 			'tab'			=> plugin_dir_path(__FILE__).'settings-payments.php'
 		),
+		'invoices'	=> array(
+			'label'		=> 'Recent Invoices',
+			'action'	=> 'invoices',
+			'tab'			=> plugin_dir_path(__FILE__).'settings-invoices.php'
+		),
 		'order_info'	=> array(
 			'label'		=> 'Get Order Info',
 			'action'	=> 'order_info',

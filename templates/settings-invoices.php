@@ -12,20 +12,9 @@
 	}
 
 
-	//$uniqueID = substr( md5( json_encode( $args ) ), 0, 10 );
-
-	//$cache_key = 'stripe-recent-payments' . $uniqueID;
 	$payments = array();
 
-	// Get any existing copy of our transient data
-	//if ( false === ( $payments = get_transient( $cache_key ) ) ) {
-		$payments = $stripe->listPayments( $args );
-		//set_transient( $cache_key, $payments, 7 * MINUTE_IN_SECONDS );
-	//}
-
-	//echo "<pre>";
-	//print_r( $payments );
-	//echo "</pre>";
+	$payments = $stripe->listInvoices( $args );
 
 	if( isset( $payments->data ) && count( $payments->data ) ){
 
@@ -44,7 +33,11 @@
 		$first_payment_id = '';
 		foreach( $payments->data as $payment ){
 
-			$data = $stripe->filterPaymentIntentData( $payment );
+			$data = $stripe->filterInvoiceData( $payment );
+
+			//echo "<pre>";
+			//print_r( $data );
+			//echo "</pre>";
 
 			if( $i == 1 ) $first_payment_id = $data['stripePaymentID'];
 
@@ -65,7 +58,7 @@
 
 			echo $data['stripeCustomerID'];
 
-			if( isset( $payment->status ) && $payment->status == 'succeeded' ){
+			if( isset( $payment->status ) && $payment->status == 'paid' ){
 				_e( '&nbsp;<button data-id="' . $data['stripePaymentID'] . '" class="button">Sync</button>' );
 			}
 
@@ -73,6 +66,7 @@
 			_e( "</li>" );
 
 			$i++;
+
 		}
 		_e( "</ul>" );
 
@@ -121,11 +115,13 @@
 		max-width: 750px;
 	}
 
-	li.grid-list:not(.succeeded){
+	/*
+	li.grid-list:not(.paid){
 		border: #d63638 solid 1px;
 		background: #d63638;
 		color: #fff;
 	}
+	*/
 
 	li.grid-list span.number{ text-align: center; }
 	li.grid-list span{
@@ -161,7 +157,7 @@
 				$button.html( 'Loading...' );
 
 				jQuery.ajax({
-					url				: "<?php echo admin_url('admin-ajax.php'); ?>?action=stripe-mailchimp&event=syncPayment",
+					url				: "<?php echo admin_url('admin-ajax.php'); ?>?action=stripe-mailchimp&event=syncInvoice",
 					data			: {
 						stripePaymentID: id
 					},
@@ -169,7 +165,7 @@
 						alert( response );
 						$button.html( button_text );
 					}
-				});
+				} );
 
 			} );
 	} );

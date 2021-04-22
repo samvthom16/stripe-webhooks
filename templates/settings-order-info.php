@@ -45,15 +45,22 @@
 			_e( '<span class="customer">Customer</span>' );
 			_e( "</li>" );
 
+			//echo "<pre>";
+			//print_r( $order );
+			//echo "</pre>";
+
 			_e( "<li class='grid-list'>" );
 			_e( '<span class="number">' . $i . '</span>' );
 			_e( '<span class="amount">' . $order->order_total . ' ' . $order->currency_code . '</span>' );
 			_e( '<span class="created">' . $order->processed_at_foreign . '</span>' );
 			_e( '<span class="payment-id">' . $order->id . '</span>' );
 			_e( '<span class="customer">' . $order->customer->email_address . '</span>' );
+
 			_e( "</li>" );
 
 			_e( "</ul>" );
+
+			_e( '<button data-id="' . $order->id . '" class="order-delete-btn button">Delete This Order From Mailchimp</button>' );
 		}
 		else{
 			$this->displayErrorNotice( "This order does not exist in the Mailchimp E-Commerce Store." );
@@ -85,16 +92,7 @@
 	li.grid-list span.customer{
 		border: none;
 	}
-	li.grid-list span.customer button{
-		padding: 3px 10px;
-		vertical-align: middle;
-		margin-left: 10px;
-		min-height: 24px;
-		line-height: 1;
-		float: right;
-		border-color: #999;
-		color: #555;
-	}
+
 </style>
 <script>
 
@@ -109,6 +107,35 @@
 				var order_id = $form.find('input[type=text]').first().val();
 
 				location.href = url + "&order_id=" + order_id;
+
+			} );
+	} );
+
+	jQuery('.order-delete-btn').each(function(){
+			var $button 		= jQuery( this ),
+				button_text 	= $button.html(),
+				id 						= $button.data( 'id' );
+
+			$button.click( function( ev ){
+				ev.preventDefault();
+
+				//console.log( window.payments[id] );
+
+				$button.html( 'Loading...' );
+
+				jQuery.ajax({
+					url				: "<?php echo admin_url('admin-ajax.php'); ?>?action=stripe-mailchimp&event=deleteOrder",
+					data			: {
+						action 		: 'stripe-mailchimp',
+						event			: 'deleteOrder',
+						order_id	: id
+					},
+					success		: function( response ){
+						$button.html( button_text );
+						var url = jQuery('[data-behaviour~=order-form]').find('input[name=url]').first().val();
+						location.href = url + "&order_id=" + id;
+					}
+				} );
 
 			} );
 	} );
