@@ -446,6 +446,8 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 					echo "Invalid event data";
 				}
 				break;
+
+			case 'invoice.payment_succeeded':
 			case 'invoice.finalized':
 				if( isset( $event['data'] ) && isset( $event['data']['object'] ) && isset( $event['data']['object']['id'] ) ){
 					echo $this->syncMailchimpWithStripe( $event['data']['object']['id'], 'invoice' );
