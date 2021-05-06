@@ -45,9 +45,6 @@
 			_e( '<span class="customer">Customer</span>' );
 			_e( "</li>" );
 
-			//echo "<pre>";
-			//print_r( $order );
-			//echo "</pre>";
 
 			_e( "<li class='grid-list'>" );
 			_e( '<span class="number">' . $i . '</span>' );
@@ -59,6 +56,33 @@
 			_e( "</li>" );
 
 			_e( "</ul>" );
+
+			//echo "<pre>";
+			//print_r( $order->lines );
+			//echo "</pre>";
+
+			if( isset( $order->lines ) && count( $order->lines ) ){
+				echo "<h5>Products</h5>";
+				echo "<ul>";
+				_e( "<li class='grid-list-products meta'>" );
+				_e( '<span class="number">#</span>' );
+				_e( '<span>Amount</span>' );
+				_e( '<span>Quantity</span>' );
+				_e( '<span>Product Title</span>' );
+				_e( "</li>" );
+				$i = 1;
+				foreach( $order->lines as $product ){
+					_e( "<li class='grid-list-products'>" );
+					_e( '<span class="number">' . $i . '</span>' );
+					_e( '<span>' . $product->price . ' ' . $order->currency_code . '</span>' );
+					_e( '<span class="text-center">' . $product->quantity . '</span>' );
+					_e( '<span>' . $product->product_title . '</span>' );
+					_e( "</li>" );
+					$i++;
+				}
+				echo "</ul>";
+			}
+
 
 			_e( '<button data-id="' . $order->id . '" class="order-delete-btn button">Delete This Order From Mailchimp</button>' );
 		}
@@ -74,24 +98,31 @@
 
 ?>
 <style>
-	li.grid-list.meta{
+	li.grid-list.meta, li.grid-list-products.meta{
 		color: #999;
 	}
-	li.grid-list{
+	li.grid-list, li.grid-list-products{
 		display: grid;
 		grid-template-columns: 40px 80px 200px 220px 250px;
 		grid-gap: 10px;
 		background: #fff;
 		max-width: 750px;
 	}
-	li.grid-list span.number{ text-align: center; }
-	li.grid-list span{
+	li.grid-list span.number, li.grid-list-products span.number, span.text-center{ text-align: center; }
+	li.grid-list span, li.grid-list-products span{
 		padding: 5px;
 		border-right: #ccc solid 1px;
 	}
-	li.grid-list span.customer{
-		border: none;
+
+	li.grid-list span:last-child, li.grid-list-products span:last-child{ border: none;}
+
+
+
+	li.grid-list-products{
+		grid-template-columns: 40px 80px 70px 200px;
+		max-width: 400px;
 	}
+
 
 </style>
 <script>

@@ -32,7 +32,7 @@
 
 		function getStoreInfo(){
 			$store_id = $this->getStoreID();
-			return $this->processRequest( '/ecommerce/stores/' . $store_id );
+			return $this->processRequest( "ecommerce/stores/$store_id" );
 		}
 
 		function createStore( $store ){
@@ -63,8 +63,9 @@
 
 		function _isEmail( $email ) {
 		   $find1 = strpos( $email, '@' );
-		   $find2 = strpos( $email, '.' );
-		   return ( $find1 !== false && $find2 !== false && $find2 > $find1 );
+			 $find2 = strpos( $email, '.' );
+			 if( $find1 && $find2 ) return true;
+			 return false;
 		}
 
 		// GET UNIQUE MEMBER BY ID OR EMAIL ADDRESS FROM THE STORE LIST
@@ -90,7 +91,12 @@
 				else{
 
 					// GET USER BY UNIQUE ID
-					$response = $this->processRequest( '/lists//' . $list_id . '/members/?unique_email_id=' . $id_or_email );
+					$response = $this->processRequest( "lists/$list_id/members/?unique_email_id=$id_or_email" );
+
+					//echo "<pre>";
+					//print_r( $response );
+					//echo "</pre>";
+
 					if( isset( $response->members ) && is_array( $response->members ) && count( $response->members ) ){
 						return $response->members[0];
 					}

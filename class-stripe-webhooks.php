@@ -67,6 +67,16 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 		switch( $event ){
 
+			//case 'test':
+
+				//$response = $mailchimpAPI->getUniqueMember( 'abigail.j.forman@gmail.com' );
+				//$response = $mailchimpAPI->getUniqueMember( '5184571208' );
+				//$id_or_email = '94160162';
+				//$subscriber_hash = $mailchimpAPI->getSubscriberHash( $id_or_email );
+				//$response = $mailchimpAPI->processRequest( "lists/b8090328d8/members/?unique_email_id=$id_or_email" );
+
+				//break;
+
 			case 'syncProducts':
 				$response = $mailchimpAPI->syncProducts();
 				break;
@@ -195,6 +205,8 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 
 		// IF THE EMAIL ADDRESS DOES NOT EXIST, THEN CHECK IN STRIPE
 		if( !isset( $customer[ 'email_address' ] ) ){
+
+
 			// GET EMAIL ADDRESS FROM STRIPE BECAUSE THE MAILCHIMP UNIQUE ID DOES NOT EXIST
 			$customer[ 'email_address' ] = $stripe->getEmailFromCustomerID( $data['stripeCustomerID'] );
 

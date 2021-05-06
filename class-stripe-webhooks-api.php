@@ -52,6 +52,8 @@
 			$url = $this->getBaseURL() . $partUrl;
 			$auth = base64_encode( 'user:' . $this->getAPIKey() );
 
+			//echo $url."<br>";
+
 			$ch = curl_init();
 			curl_setopt( $ch, CURLOPT_URL, $url );
 			curl_setopt( $ch, CURLOPT_HTTPHEADER, $this->getHTTPHeader() );
