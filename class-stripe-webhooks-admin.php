@@ -16,6 +16,10 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 			'stripe-mailchimp-webhooks'	=> array(
 				'title'	=> 'Stripe Mailchimp Webhooks',
 				'icon'	=> 'dashicons-editor-kitchensink'
+			),
+			'stripe-mailchimp-sample'	=> array(
+				'title'	=> 'Sample',
+				'menu'	=> 'stripe-mailchimp-webhooks'
 			)
 		) );
 
