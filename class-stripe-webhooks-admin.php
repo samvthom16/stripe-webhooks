@@ -2,6 +2,7 @@
 
 class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
+	var $menu;
 	var $settings;
 	var $settingsMetaOptionKey;
 
@@ -11,19 +12,22 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 		$this->setSettings( get_option( $this->getSettingsMetaOptionKey() ) );
 
-		add_action( 'admin_menu', function(){
+		$this->setMenu( array(
+			'stripe-mailchimp-webhooks'	=> array(
+				'title'	=> 'Stripe Mailchimp Webhooks',
+				'icon'	=> 'dashicons-editor-kitchensink'
+			)
+		) );
 
-			add_submenu_page(
-				'options-general.php',
-				__('Stripe Webhooks Settings', 'stripe-webhooks'),
-				__('Stripe Webhooks Settings', 'stripe-webhooks'),
-				'manage_options',
-				'settings',
-				array( $this, 'settings_page' )
-			);
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 
-		});
 	}
+
+	/*
+	* GETTER AND SETTER FUNCTIONS
+	*/
+	function getMenu(){ return $this->menu; }
+	function setMenu( $menu ){ $this->menu = $menu; }
 
 	function setSettingsMetaOptionKey( $settingsMetaOptionKey ){ $this->settingsMetaOptionKey = $settingsMetaOptionKey; }
 	function getSettingsMetaOptionKey(){ return $this->settingsMetaOptionKey; }
@@ -44,9 +48,32 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 			'mailchimpStoreID'		=> 'Mailchimp Store ID'
 		);
 	}
+	/*
+	* END OF GETTER AND SETTER FUNCTIONS
+	*/
 
-	function settings_page(){
-		include "templates/settings.php";
+	function admin_menu(){
+
+		foreach( $this->getMenu() as $slug => $menu_item ){
+
+			$menu_item['slug'] = $slug;
+
+			// CHECK FOR MAIN MENU OR SUB MENU
+			if( !isset( $menu_item['menu'] ) ){
+				add_menu_page( $menu_item['title'], $menu_item['title'], 'manage_options', $menu_item['slug'], array( $this, 'menu_page' ), $menu_item['icon'] );
+			}
+			else{
+				add_submenu_page( $menu_item['menu'], $menu_item['title'], $menu_item['title'], 'manage_options', $menu_item['slug'], array( $this, 'menu_page' ) );
+			}
+
+		}
+
+	}
+
+	/* MENU PAGE */
+	function menu_page(){
+		$page = $_GET[ 'page' ];
+		include( 'templates/'.$page.'.php' );
 	}
 
 	function displayUpdateNotice( $message ){

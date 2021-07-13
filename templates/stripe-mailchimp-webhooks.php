@@ -36,9 +36,13 @@
 	<h2 class="nav-tab-wrapper">
 	<?php
 		foreach( $screens as $slug => $screen ){
-			$url =  admin_url( 'options-general.php?page=settings' );
+
+			$base_settings_url = "admin.php?page=stripe-mailchimp-webhooks";
+
+			$url = admin_url( $base_settings_url );
+
 			if( isset( $screen['action'] ) ){
-				$url =  esc_url( add_query_arg( array( 'action' => $screen['action'] ), admin_url( 'options-general.php?page=settings' ) ) );
+				$url =  esc_url( add_query_arg( array( 'action' => $screen['action'] ), admin_url( $base_settings_url ) ) );
 			}
 
 			$nav_class = "nav-tab";
