@@ -77,7 +77,7 @@
 		}
 
 		function cachedProcessRequest( $partUrl, $postParams = array() ){
-			$cache_key = 'stripe-mc' . md5( $partUrl );
+			$cache_key = 'stripe-mc1' . md5( $partUrl );
 			$data = array();
 
 			// Get any existing copy of our transient data
