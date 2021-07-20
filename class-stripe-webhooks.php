@@ -227,7 +227,7 @@ class STRIPE_WEBHOOKS extends STRIPE_WEBHOOKS_BASE{
 				$customer[ 'opt_in_status' ] = true;
 			}
 		}
-
+		
 
 
 		// CHECK AGAIN IF THE EMAIL ADDRESS EXISTS, IF YES THEN ADD ID

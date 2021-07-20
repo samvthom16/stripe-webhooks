@@ -58,6 +58,16 @@
 			'action'	=> 'list-locations',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listlocations.php'
 		),
+		'list-segments'	=> array(
+			'label'		=> 'List Segments',
+			'action'	=> 'list-segments',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listsegments.php'
+		),
+		'segment-members'	=> array(
+			'label'		=> 'Segment Members',
+			'action'	=> 'segment-members',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-segmentmembers.php'
+		),
 		'member-activity'	=> array(
 			'label'		=> 'Member Activity',
 			'action'	=> 'member-activity',
@@ -72,6 +82,16 @@
 			'label'		=> 'Member Tags',
 			'action'	=> 'member-tags',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-membertags.php'
+		),
+		'orders'	=> array(
+			'label'		=> 'Orders',
+			'action'	=> 'orders',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-orders.php'
+		),
+		'order-info'	=> array(
+			'label'		=> 'Order Info',
+			'action'	=> 'order-info',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-orderinfo.php'
 		),
 	);
 
