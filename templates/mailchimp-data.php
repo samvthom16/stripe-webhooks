@@ -44,22 +44,22 @@
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-lists.php'
 		),
 		'list-activity'	=> array(
-			'label'		=> 'List Activity',
+			'label'		=> 'Activity',
 			'action'	=> 'list-activity',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listactivity.php'
 		),
 		'list-growth'	=> array(
-			'label'		=> 'List Growth',
+			'label'		=> 'Growth',
 			'action'	=> 'list-growth',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listgrowth.php'
 		),
 		'list-locations'	=> array(
-			'label'		=> 'List Locations',
+			'label'		=> 'Locations',
 			'action'	=> 'list-locations',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listlocations.php'
 		),
 		'list-segments'	=> array(
-			'label'		=> 'List Segments',
+			'label'		=> 'Segments',
 			'action'	=> 'list-segments',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-listsegments.php'
 		),
@@ -92,6 +92,16 @@
 			'label'		=> 'Order Info',
 			'action'	=> 'order-info',
 			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-orderinfo.php'
+		),
+		'campaigns'	=> array(
+			'label'		=> 'Campaigns',
+			'action'	=> 'campaigns',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-campaigns.php'
+		),
+		'campaign-info'	=> array(
+			'label'		=> 'Campaign Info',
+			'action'	=> 'campaign-info',
+			'tab'		=> plugin_dir_path(__FILE__).'mailchimp-campaigninfo.php'
 		),
 	);
 
