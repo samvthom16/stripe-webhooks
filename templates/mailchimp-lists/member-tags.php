@@ -5,9 +5,7 @@
 		'email_address'	=> 'Email Address'
 	);
 
-	displayForm( $settingsOptions );
-
-	$stripe = STRIPE_WEBHOOKS_STRIPE_API::getInstance();
+	$this->displayForm( $settingsOptions );
 
 	if( isset( $_GET['list_id'] ) && isset( $_GET['email_address'] ) ){
 
@@ -18,7 +16,7 @@
 
 		$subscriber_hash = $mailchimpAPI->getSubscriberHash( $email_address );
 
-		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/activity" );
+		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/tags" );
 
 		echo "<pre>";
 		print_r( $response );

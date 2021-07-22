@@ -17,13 +17,19 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 				'title'	=> 'Stripe Mailchimp Webhooks',
 				'icon'	=> 'dashicons-editor-kitchensink'
 			),
-			'mailchimp-data'	=> array(
-				'title'	=> 'Mailchimp Data',
+			'mailchimp-lists'	=> array(
+				'title'	=> 'Mailchimp Lists',
+				'menu'	=> 'stripe-mailchimp-webhooks'
+			),
+			'mailchimp-misc'	=> array(
+				'title'	=> 'Mailchimp Misc',
 				'menu'	=> 'stripe-mailchimp-webhooks'
 			)
 		) );
 
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'assets') );
 
 	}
 
@@ -80,6 +86,10 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 		include( 'templates/'.$page.'.php' );
 	}
 
+	function assets(){
+		wp_enqueue_script( 'stripe-webhooks-admin', plugins_url( 'stripe-webhooks/dist/js/admin.js' ), array(), time() );
+	}
+
 	function displayUpdateNotice( $message ){
 		?>
 		<div class="updated notice">
@@ -94,6 +104,85 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
     	<p><?php _e( $message );?></p>
 		</div>
 		<?php
+	}
+
+	function displayForm( $settingsOptions ){
+
+		_e( "<form data-behaviour='form-redirect'>" );
+
+		foreach( $settingsOptions as $option_slug => $option_title ){
+			$option_name = $option_slug;
+			$option_value = isset( $_GET[ $option_slug ] ) ? $_GET[ $option_slug ] : "";
+
+			_e('<p>');
+			_e( "<label>$option_title</label><br>" );
+			_e( "<input class='form-field' type='text' name='$option_name' style='width: 100%; max-width: 400px;' value='$option_value' />" );
+			_e('</p>');
+		}
+
+		// SHOW URL PARAMETERS IN HIDDEN FIELD
+		$url = admin_url( 'admin.php' );
+		$url_params = array( 'page', 'action' );
+		$i = 0;
+		foreach( $url_params as $param ){
+			if( isset( $_GET[ $param ] ) && $_GET[ $param ] ){
+
+				if( $i ){ $url .= "&"; }
+				else{ $url .= "?"; }
+
+				$url .= $param . "=" . $_GET[ $param ];
+				$i++;
+			}
+		}
+
+		_e( "<input type='hidden' name='url' value='$url' />" );
+		_e( "<p class='submit'><input type='submit' name='submit' class='button button-primary' value='Get'><p>" );
+		_e( '</form>' );
+	}
+
+	function displayTabs( $screens, $heading = '', $folder = '' ){
+		_e( "<div class='wrap'>" );
+
+		_e( "<h1>$heading</h1>" );
+
+		_e( "<h2 class='nav-tab-wrapper'>" );
+
+		$i = 0;
+		$active_tab = '';
+		foreach( $screens as $slug => $title ){
+			$base_settings_url = "admin.php?page=" . $_GET['page'];
+
+			$url = admin_url( $base_settings_url );
+
+			if( $i ){
+				$url =  esc_url( add_query_arg( array( 'action' => $slug ), admin_url( $base_settings_url ) ) );
+			}
+
+			$nav_class = "nav-tab";
+
+			if( $i && isset( $_GET['action'] ) && $slug == $_GET['action'] ){
+				$nav_class .= " nav-tab-active";
+				$active_tab = $slug;
+			}
+
+			if( !$i && !isset( $_GET['action'] ) ){
+				$nav_class .= " nav-tab-active";
+				$active_tab = $slug;
+			}
+
+			$i++;
+
+			_e( "<a href='$url' class='$nav_class'>$title</a>" );
+		}
+		_e( "</h2>" );
+
+		$file_location = 	$folder . "/" . $active_tab . ".php";
+
+		if( file_exists( $file_location ) ){
+			include( $file_location );
+		}
+
+		_e( "</div>" );
 	}
 
 }

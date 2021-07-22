@@ -4,7 +4,7 @@
 		'order_id' => 'Order ID'
 	);
 
-	displayForm( $settingsOptions );
+	$this->displayForm( $settingsOptions );
 
 	if( isset( $_GET['order_id'] ) ){
 

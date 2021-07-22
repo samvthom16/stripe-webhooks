@@ -4,7 +4,7 @@
 		'campaign_id' => 'Campaign ID'
 	);
 
-	displayForm( $settingsOptions );
+	$this->displayForm( $settingsOptions );
 
 	if( isset( $_GET['campaign_id'] ) ){
 
