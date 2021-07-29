@@ -16,11 +16,38 @@
 
 		$subscriber_hash = $mailchimpAPI->getSubscriberHash( $email_address );
 
+		$columns = array(
+			array(
+				'label'	=> 'Activity Type',
+				'key'		=> 'activity_type'
+			),
+			array(
+				'label'	=> 'Created At',
+				'key'		=> 'created_at_timestamp'
+			),
+			array(
+				'label'	=> 'Campaign ID',
+				'key'		=> 'campaign_id'
+			),
+			array(
+				'label'	=> 'Campaign Title',
+				'key'		=> 'campaign_title'
+			),
+			array(
+				'label'	=> 'Link Clicked',
+				'key'		=> 'link_clicked'
+			),
+		);
+
 		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/activity-feed" );
 
-		echo "<pre>";
-		print_r( $response );
-		echo "</pre>";
+		$table_ui = STRIPE_WEBHOOKS_TABLE_UI::getInstance();
+		$table_ui->display( $columns, $response->activity, 'member-feed' );
+
+
+		//echo "<pre>";
+		//print_r( $response );
+		//echo "</pre>";
 
 
 		}
