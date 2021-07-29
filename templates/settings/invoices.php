@@ -115,14 +115,6 @@
 		max-width: 750px;
 	}
 
-	/*
-	li.grid-list:not(.paid){
-		border: #d63638 solid 1px;
-		background: #d63638;
-		color: #fff;
-	}
-	*/
-
 	li.grid-list span.number{ text-align: center; }
 	li.grid-list span{
 		padding: 5px;

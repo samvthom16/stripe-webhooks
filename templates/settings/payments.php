@@ -107,8 +107,7 @@
 	}
 ?>
 <style>
-	.paginate-btns li{ display: inline-block; }
-	.paginate-btns li:not(:first-child){ margin-left: 15px;}
+	
 
 	li.grid-list.meta{
 		color: #999;

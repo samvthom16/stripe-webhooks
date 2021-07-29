@@ -31,6 +31,21 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets') );
 
+		add_action( 'wp_ajax_exportcsv', array( $this, 'exportCsv' ) );
+
+	}
+
+	function exportCsv(){
+
+		$export = STRIPE_WEBHOOKS_EXPORT::getInstance();
+
+		$file_slug = $_POST['settings']['filename'];
+
+		$filepath = $export->addRowsToCSV( $file_slug, $_POST['rows'] );
+
+		wp_send_json( $filepath );
+
+
 	}
 
 	/*
@@ -88,6 +103,7 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 	function assets(){
 		wp_enqueue_script( 'stripe-webhooks-admin', plugins_url( 'stripe-webhooks/dist/js/admin.js' ), array(), time() );
+		wp_enqueue_style( 'stripe-webhooks-admin', plugins_url( 'stripe-webhooks/dist/css/admin.css' ), array(), time() );
 	}
 
 	function displayUpdateNotice( $message ){
@@ -184,6 +200,8 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 
 		_e( "</div>" );
 	}
+
+
 
 }
 

@@ -1,0 +1,43 @@
+li.grid-list.meta{
+	color: #999;
+}
+li.grid-list{
+	display: grid;
+	grid-template-columns: 40px 80px 100px 220px 250px;
+	grid-gap: 10px;
+	background: #fff;
+	max-width: 750px;
+}
+
+
+li.grid-list span{
+	padding: 5px;
+	border-right: #ccc solid 1px;
+}
+
+.mc-lists li.grid-list{
+	grid-template-columns: repeat( 11, 1fr );
+	max-width: 1200px;
+}
+
+li.grid-list span.number{
+	text-align: center;
+	width: 40px;
+}
+
+.table-wrapper{ max-width:100%;overflow-x:scroll;padding:20px 0; }
+table th{ min-width: 70px; }
+table th.number{ width: 20px; min-width: 0;}
+table th.name{ min-width: 250px; }
+table th.campaign-last-sent, table th.last-sub-date, table th.last-unsub-date{
+	width: 200px;
+}
+table th .action-buttons{ display: none; }
+table td .action-buttons{ visibility: hidden; }
+table td:hover .action-buttons{
+	visibility: visible;
+}
+table td .action-buttons li{ display: inline-block; margin-right: 10px;}
+
+.paginate-btns li{ display: inline-block; }
+.paginate-btns li:not(:first-child){ margin-left: 5px;}

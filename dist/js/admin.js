@@ -21,6 +21,35 @@ jQuery.fn.form_redirect  = function(){
 	} );
 };
 
+jQuery.fn.export_csv = function(){
+	return this.each( function(){
+		var $btn = jQuery( this ),
+			data 	= window.browserData.csvdata;
+
+		console.log( data );
+
+		$btn.click( function(){
+
+			jQuery.ajax( {
+				url				: data['settings']['ajax_url'],
+				type			: 'POST',
+				dataType	: 'json',
+				data			: data,
+				success: function( response ){
+					//console.log( response );
+					window.open( response.url );
+				}
+			} );
+
+
+		} );
+
+
+
+	} );
+};
+
 jQuery( document ).ready( function(){
 	jQuery('[data-behaviour~=form-redirect]').form_redirect();
+	jQuery('[data-behaviour~=btn-export-csv]').export_csv();
 } );

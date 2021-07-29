@@ -18,7 +18,9 @@
 		'class-stripe-webhooks-api.php',
 		'class-stripe-webhooks-stripe-api.php',
 		'class-stripe-webhooks-mailchimp-api.php',
+		'class-stripe-webhooks-export.php',
 		'class-stripe-webhooks-admin.php',
+		'class-stripe-webhooks-table-ui.php',
 		'class-stripe-webhooks.php'
 	);
 

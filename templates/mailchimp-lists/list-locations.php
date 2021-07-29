@@ -14,9 +14,31 @@
 
 		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/locations" );
 
-		echo "<pre>";
-		print_r( $response );
-		echo "</pre>";
+		$columns = array(
+			array(
+				'label'	=> 'Country',
+				'key'		=> 'country'
+			),
+			array(
+				'label'	=> 'CC',
+				'key'		=> 'cc'
+			),
+			array(
+				'label'	=> 'Percent',
+				'key'		=> 'percent'
+			),
+			array(
+				'label'	=> 'Total',
+				'key'		=> 'total'
+			),
+		);
+
+		$table_ui = STRIPE_WEBHOOKS_TABLE_UI::getInstance();
+		$table_ui->display( $columns, $response->locations, 'list-locations' );
+
+		//echo "<pre>";
+		//print_r( $response );
+		//echo "</pre>";
 
 
 		}
