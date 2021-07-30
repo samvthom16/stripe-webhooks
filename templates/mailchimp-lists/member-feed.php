@@ -50,10 +50,14 @@
 			),
 		);
 
-		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/activity-feed" );
+		$per_page = 1000;
+		$activepage = isset( $_GET['paged'] ) ? $_GET['paged'] : 1;
+		$offset = ( $activepage - 1 ) * $per_page;
+		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/activity-feed?count=$per_page&offset=$offset" );
 
 		$table_ui = STRIPE_WEBHOOKS_TABLE_UI::getInstance();
 		$table_ui->display( $columns, $response->activity, 'member-feed' );
+		$table_ui->pagination( $per_page, $response->total_items, array( 'list_id', 'action', 'email_address' ) );
 
 
 		//echo "<pre>";
