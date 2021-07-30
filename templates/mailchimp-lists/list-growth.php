@@ -12,7 +12,10 @@
 
 		$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
 
-		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/growth-history" );
+		$per_page = 50;
+		$activepage = isset( $_GET['paged'] ) ? $_GET['paged'] : 1;
+		$offset = ( $activepage - 1 ) * $per_page;
+		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/growth-history?count=$per_page&offset=$offset" );
 
 		$columns = array(
 			array(
@@ -67,6 +70,12 @@
 
 		$table_ui = STRIPE_WEBHOOKS_TABLE_UI::getInstance();
 		$table_ui->display( $columns, $response->history, 'list-growth' );
+
+		$table_ui->pagination( $per_page, $response->total_items, array( 'list_id', 'action' ) );
+
+		//echo "<pre>";
+		//print_r( $response );
+		//echo "</pre>";
 
 		}
 	else{

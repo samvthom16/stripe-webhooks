@@ -16,7 +16,18 @@
 
 		$subscriber_hash = $mailchimpAPI->getSubscriberHash( $email_address );
 
+		add_filter( 'stripe_webhooks_find_child', function( $value, $slug ){
+			if( $slug == 'email-address' ){
+				$value = $_GET['email_address'];
+			}
+			return $value;
+		}, 10, 2 );
+
 		$columns = array(
+			array(
+				'label'	=> 'Email Address',
+				'key'		=> ''
+			),
 			array(
 				'label'	=> 'Activity Type',
 				'key'		=> 'activity_type'

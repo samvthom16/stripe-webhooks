@@ -18,6 +18,10 @@
 
 		$columns = array(
 			array(
+				'label'	=> 'Email Address',
+				'key'		=> ''
+			),
+			array(
 				'label'	=> 'Action',
 				'key'		=> 'action'
 			),
@@ -43,7 +47,14 @@
 			),
 		);
 
-		$per_page = 50;
+		add_filter( 'stripe_webhooks_find_child', function( $value, $slug ){
+			if( $slug == 'email-address' ){
+				$value = $_GET['email_address'];
+			}
+			return $value;
+		}, 10, 2 );
+
+		$per_page = 1000;
 		$activepage = isset( $_GET['paged'] ) ? $_GET['paged'] : 1;
 		$offset = ( $activepage - 1 ) * $per_page;
 		$response = $mailchimpAPI->cachedProcessRequest( "/lists/$list_id/members/$subscriber_hash/activity?count=$per_page&offset=$offset" );

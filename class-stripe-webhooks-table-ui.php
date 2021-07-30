@@ -77,7 +77,7 @@ class STRIPE_WEBHOOKS_TABLE_UI extends STRIPE_WEBHOOKS_BASE{
 			$row = array( 'number' => $i );
 			foreach( $columns as $column ){
 				$slug = $this->slugify( $column['label'] );
-				$row[ $slug ] = $this->findChild( $list, $column['key'] );
+				$row[ $slug ] = apply_filters( 'stripe_webhooks_find_child', $this->findChild( $list, $column['key'] ), $slug );
 			}
 			$this->displayRow( $row );
 
