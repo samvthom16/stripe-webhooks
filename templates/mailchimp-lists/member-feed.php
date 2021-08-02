@@ -57,8 +57,9 @@
 
 		$table_ui = STRIPE_WEBHOOKS_TABLE_UI::getInstance();
 		$table_ui->display( $columns, $response->activity, 'member-feed' );
-		$table_ui->pagination( $per_page, $response->total_items, array( 'list_id', 'action', 'email_address' ) );
-
+		if( isset( $response->total_items ) ){
+			$table_ui->pagination( $per_page, $response->total_items, array( 'list_id', 'action', 'email_address' ) );
+		}
 
 		//echo "<pre>";
 		//print_r( $response );

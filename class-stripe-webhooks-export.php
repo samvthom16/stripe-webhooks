@@ -12,6 +12,13 @@ class STRIPE_WEBHOOKS_EXPORT extends STRIPE_WEBHOOKS_BASE{
 		return $filePath;
 	}
 
+	function addRowToCSV( $file_slug, $row, $write_flag = 'a' ){
+		$path = $this->getFilePath( $file_slug );
+		$outstream = fopen( $path['path'], $write_flag );
+		fputcsv( $outstream, $row );
+		fclose( $outstream );
+	}
+
 	// APPENDS THE ROW OF DATA TO AN ALREADY EXISTING FILE
 	function addRowsToCSV( $file_slug, $rows ){
 

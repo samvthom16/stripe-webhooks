@@ -24,6 +24,10 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 			'mailchimp-misc'	=> array(
 				'title'	=> 'Mailchimp Misc',
 				'menu'	=> 'stripe-mailchimp-webhooks'
+			),
+			'mailchimp-member-feed'	=> array(
+				'title'	=> 'Mailchimp Member Feed',
+				'menu'	=> 'stripe-mailchimp-webhooks'
 			)
 		) );
 
@@ -32,6 +36,42 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets') );
 
 		add_action( 'wp_ajax_exportcsv', array( $this, 'exportCsv' ) );
+
+		/* SAMPLE ACTION HOOK FOR AJAX CALL */
+		add_action('orbit_batch_action_stripe_export_member_feeds', function(){
+
+			$members = $_POST[ 'members' ];
+			$list_id = $_POST[ 'list_id' ];
+			$batch_step = $_POST[ 'orbit_batch_step' ];
+			$columns = $_POST[ 'columns' ];
+			$file_slug = $_POST[ 'file_slug' ];
+
+			$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
+			$export = STRIPE_WEBHOOKS_EXPORT::getInstance();
+
+			$member_id = $members[ $batch_step - 1 ];
+			$feed_response = $mailchimpAPI->processRequest( "/lists/$list_id/members/$member_id/activity-feed?count=1000" );
+
+			echo $member_id;
+			foreach( $feed_response->activity as $activity ){
+				$activity->id = $member_id;
+
+				$row = array();
+
+				foreach ( $columns as $column ) {
+					array_push( $row, $activity->$column );
+				}
+
+				$export->addRowToCSV( $file_slug, $row );
+
+				//echo "<pre>";
+				//print_r( $row );
+				//echo "</pre>";
+			}
+
+
+		} );
+
 
 	}
 
@@ -104,6 +144,9 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 	function assets(){
 		wp_enqueue_script( 'stripe-webhooks-admin', plugins_url( 'stripe-webhooks/dist/js/admin.js' ), array(), time() );
 		wp_enqueue_style( 'stripe-webhooks-admin', plugins_url( 'stripe-webhooks/dist/css/admin.css' ), array(), time() );
+
+		$orbit_batch_process = new ORBIT_BATCH_PROCESS;
+		$orbit_batch_process->enqueue();
 	}
 
 	function displayUpdateNotice( $message ){
