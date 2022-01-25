@@ -49,7 +49,8 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 			$mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
 			$export = STRIPE_WEBHOOKS_EXPORT::getInstance();
 
-			$member_id = $members[ $batch_step - 1 ];
+			$member_email = $members[ $batch_step - 1 ];
+			$member_id = $mailchimpAPI->getSubscriberHash( $member_email );
 			$feed_response = $mailchimpAPI->processRequest( "/lists/$list_id/members/$member_id/activity-feed?count=1000" );
 
 			echo $member_id;
@@ -59,7 +60,12 @@ class STRIPE_WEBHOOKS_ADMIN extends STRIPE_WEBHOOKS_BASE{
 				$row = array();
 
 				foreach ( $columns as $column ) {
-					array_push( $row, $activity->$column );
+					if( $column == 'email_address' ){
+						array_push( $row, $member_email );	
+					}
+					else{
+						array_push( $row, $activity->$column );
+					}
 				}
 
 				$export->addRowToCSV( $file_slug, $row );

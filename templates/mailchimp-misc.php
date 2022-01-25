@@ -1,6 +1,7 @@
 <?php
 
 	$screens = array(
+		'all-orders'			=> 'All Orders',
 		'orders'					=> 'Orders',
 		'order-info'			=> 'Order Info',
 		'campaigns'				=> 'Campaigns',

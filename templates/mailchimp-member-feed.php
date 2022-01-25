@@ -16,17 +16,20 @@ $mailchimpAPI = STRIPE_WEBHOOKS_MAILCHIMP_API::getInstance();
 $response = $mailchimpAPI->processRequest( "/lists/$list_id/members?count=$per_page" );
 $members = array();
 foreach( $response->members as $member ){
-	array_push( $members, $member->id );
+	//print_r( $member );
+	array_push( $members, $member->email_address );
 }
 
 $file_slug = 'member-feeds';
 $export = STRIPE_WEBHOOKS_EXPORT::getInstance();
 $header_row = array(
 	'id',
+	'email_address',
 	'activity_type',
 	'created_at_timestamp',
 	'campaign_id',
-	'campaign_title'
+	'campaign_title',
+	'link_clicked'
 );
 $export->addRowToCSV( $file_slug, $header_row, 'w' );
 

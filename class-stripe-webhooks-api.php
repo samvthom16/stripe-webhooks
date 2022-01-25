@@ -49,7 +49,7 @@
 
 		function processRequest( $partUrl, $postParams = array(), $deleteFlag = false ){
 
-			$url = $this->getBaseURL() . $partUrl;
+			$url = $this->getBaseURL() . $partUrl; 
 			$auth = base64_encode( 'user:' . $this->getAPIKey() );
 
 			//echo $url."<br>";
